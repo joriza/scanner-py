@@ -131,3 +131,122 @@ Se documentan propuestas priorizadas, preparadas en la rama "ztmp-01" para imple
 Notas:
 - Prioridad sugerida para implementación: 1) mover DB URI a env var + validaciones de API, 2) migraciones y relación cascade, 3) desacoplar sync a background jobs.
 - Puedo aplicar los cambios iniciales en la rama ztmp-01 y crear commits con pruebas unitarias y ejemplos de uso si autoriza la implementación.
+
+---
+
+## 8. Ejecución y despliegue
+
+Se describen las formas recomendadas para ejecutar y desplegar la aplicación.
+
+### 8.1 Ejecución local (desarrollo)
+- Crear y activar entorno virtual, instalar deps:
+  ```bash
+  python -m venv venv
+  venv\Scripts\activate      # Windows
+  source venv/bin/activate   # macOS / Linux
+  pip install -r requirements.txt
+  ```
+- Ejecutar servidor de desarrollo:
+  ```bash
+  export FLASK_DEBUG=1
+  python app.py
+  ```
+  o en Windows (PowerShell):
+  ```powershell
+  $env:FLASK_DEBUG = "1"
+  python app.py
+  ```
+
+### 8.2 Ejecución local (producción - gunicorn)
+- Recomendado para pruebas de producción local:
+  ```bash
+  pip install gunicorn
+  gunicorn app:app --bind 0.0.0.0:8000 --workers 3 --timeout 120
+  ```
+
+### 8.3 Despliegue en Render
+- Campo "Start Command" (Start Command / Deploy):
+  ```
+  gunicorn app:app --bind 0.0.0.0:$PORT
+  ```
+- Recomendado con workers:
+  ```
+  gunicorn app:app --workers 3 --bind 0.0.0.0:$PORT --timeout 120
+  ```
+- Notas:
+  - Render expone el puerto en la variable de entorno `$PORT`; no usar puerto fijo.
+  - Asegúrese que `gunicorn` y dependencias estén en `requirements.txt`.
+  - Si usa Swagger/Flasgger, incluya `flasgger` en `requirements.txt` (opcional: la app tolera su ausencia).
+
+### 8.4 Despliegue con Docker (ejemplo mínimo)
+- Dockerfile mínimo:
+  ```dockerfile
+  FROM python:3.11-slim
+  WORKDIR /app
+  COPY requirements.txt .
+  RUN pip install -r requirements.txt
+  COPY . .
+  ENV PORT=8000
+  CMD ["gunicorn", "app:app", "--workers", "3", "--bind", "0.0.0.0:8000", "--timeout", "120"]
+  ```
+- Build & run:
+  ```bash
+  docker build -t scanner-pro .
+  docker run -p 8000:8000 -e PORT=8000 scanner-pro
+  ```
+
+### 8.5 Variables de entorno importantes
+- DATABASE_URL — URI SQLAlchemy (ej.: `sqlite:///instance/scanner.db` o `sqlite:///C:/full/path/instance/scanner.db` o una URL PostgreSQL).
+- HOST / PORT — opcionales para ejecución local; Render provee $PORT.
+- FLASK_DEBUG — "1" para activar modo debug local.
+
+### 8.6 Troubleshooting común
+- Error "unable to open database file":
+  - Verificar que `instance/scanner.db` existe y permisos de escritura.
+  - Para rutas relativas, la app ahora genera ruta absoluta; si persiste, pruebe con `DATABASE_URL=sqlite:///C:/ruta/completa/instance/scanner.db`.
+- Error de módulo faltante en deploy (ej. `ModuleNotFoundError: No module named 'flasgger'`):
+  - Añadir la dependencia a `requirements.txt` o dejar la importación opcional (la app soporta ambos modos).
+
+---
+
+## 9. Convenciones de Git y flujo de trabajo (estilo del proyecto)
+
+Estas reglas deben registrarse y respetarse en el proyecto para mantener consistencia operativa.
+
+- Publicación de ramas
+  - Al crear una rama local se debe publicar en GitHub inmediatamente y configurar upstream:
+    ```bash
+    git checkout -b nombre-rama
+    git push -u origin nombre-rama
+    ```
+
+- Mensajes de commit
+  - Mensajes en español.
+  - Asunto en presente indicativo (≤ 72 caracteres). Cuerpo opcional separado por línea en blanco.
+    ```
+    Corregir validación en POST /api/tickers
+
+    Se añade comprobación de request.json y mensaje de error claro cuando falta 'symbol'.
+    ```
+
+- Push obligatorio después de commit
+  - Tras cada commit relevante, hacer push:
+    ```bash
+    git add .
+    git commit -m "Mensaje en español"
+    git push
+    ```
+
+- Pull Requests
+  - Crear PRs con título y descripción en español; referenciar issue/objetivo.
+
+- Nomenclatura de ramas
+  - feature/<breve-descripción>, fix/<breve-descripción>, chore/<tarea>.
+
+- Hooks y verificación automática (recomendado)
+  - Configurar pre-commit hooks (black, isort, flake8).
+
+- Buenas prácticas
+  - Commits atómicos y pequeños.
+  - Incluir tests al añadir funcionalidad.
+  - Mantener rama principal protegida y usar PRs revisados.

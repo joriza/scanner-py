@@ -1,18 +1,13 @@
 {
-  "name": "Scanner-Py",
-  "version": "1.1.0",
-  "description": "Financial scanner with multi-strategy support (RSI+MACD and 3 EMAs Daily/Weekly).",
-  "instructions": [
-    "Always reference DOCUMENTACION.md for specific strategy logic.",
-    "The strategy '3_emas' uses EMA periods (4, 9, 18).",
-    "Weekly data MUST be resampled using frequency 'W-FRI'.",
-    "Sorting hierarchy for 3_emas: 1. Score (Both TF active), 2. Weekly days (ASC), 3. Daily days (ASC).",
-    "Avoid future-dated weekly labels by capping resample index with current date.",
-    "Frontend uses vanilla JS for dynamic table rendering based on the selected strategy."
-  ],
-  "tech_stack": {
-    "backend": "Python/Flask/SQLAlchemy",
-    "frontend": "HTML/Vanilla CSS/JS",
-    "indicators": "Pandas-TA"
-  }
+    "project": "Scanner Pro Python",
+    "version": "1.2.0",
+    "core_rules": {
+        "sorting": "Hierarchy: Score (D+W active) > Weekly Days (ASC) > Daily Days (ASC).",
+        "weekly_logic": "Always resample Daily -> Weekly using frequency 'W-FRI'. Cap dates to today.",
+        "macd_logic": "Standard (12, 26, 9). Color RED if MACD > 0 OR MACD < Signal.",
+        "rsi_logic": "Period 14. Rebound signal only counts AFTER the most recent oversold (<30) event.",
+        "ui_aesthetics": "Premium Dark Mode, Glassmorphism, dynamic table headers based on strategy_id."
+    },
+    "database": "SQLite (database.py). Incremental sync via FinanceService.sync_ticker_data.",
+    "api_standard": "All technical signals computed in memory via FinanceService.get_signals(ticker, strategy)."
 }

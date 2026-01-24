@@ -78,3 +78,56 @@ El sistema permite la exportación íntegra del estado actual del dashboard a fo
 - **Dependency Management**: El entorno de ejecución se rige por el archivo `requirements.txt`.
 - **Contexto de Agente**: El archivo `.agent` define las invariantes del sistema, prohibiendo expresamente el uso de datos sintéticos (placeholders) y garantizando la coherencia estilística en futuras expansiones.
 - **Versionado**: Gestión de ramas por fecha (ISO 8601) para asegurar la trazabilidad de features.
+
+---
+
+## 7. Propuestas de mejora (rama: ztmp-01)
+
+Se documentan propuestas priorizadas, preparadas en la rama "ztmp-01" para implementación incremental.
+
+- Configuración y despliegue
+  - Usar variable de entorno DATABASE_URL y ruta relativa (ej. `sqlite:///instance/scanner.db`) en lugar de ruta absoluta.
+  - Añadir Dockerfile y preparar configuración para gunicorn/uWSGI en producción.
+
+- Modelos y base de datos
+  - Añadir relación Ticker.prices con backref y cascade delete.
+  - Crear índice compuesto en Price (ticker_id, date) y considerar Numeric para precisión de precios.
+  - Reemplazar uso de create_all por migraciones con Flask-Migrate / Alembic.
+
+- Robustez y manejo de errores
+  - Validar request.json y campos (evitar usar .get si request.json es None).
+  - Manejar y loggear excepciones en sync_ticker_data; evitar silenciar errores con continue.
+  - Usar transacciones y rollback en operaciones de escritura.
+
+- Rendimiento y escalabilidad
+  - Usar inserciones por lotes (bulk_save_objects / bulk_insert_mappings) o upserts para evitar queries por fila.
+  - Validar y normalizar datos de yfinance (gestión de MultiIndex, NaN) antes de persistir.
+  - Implementar caching de cálculos de señales (TTL) para evitar recomputos innecesarios.
+
+- Arquitectura de ejecución
+  - Desacoplar sincronizaciones a background jobs (Celery, RQ o APScheduler).
+  - Añadir locking por ticker o encolamiento para evitar sincronizaciones concurrentes del mismo activo.
+  - Implementar retry/backoff y control de rate-limit para llamadas a APIs externas.
+
+- API y seguridad
+  - Añadir endpoints: `GET /api/tickers/<id>/prices` (paginado), `POST /api/tickers/<id>/resync`, `GET /api/health`.
+  - Añadir autenticación/autorization para rutas administrativas (token, OAuth o Flask-Login).
+  - Normalizar formato de respuestas JSON y códigos HTTP.
+
+- Funcionalidades y UX
+  - Interfaz: lista de tickers con estado, gráficos interactivos (Chart.js), botón de re-sync por ticker.
+  - Export CSV/JSON de precios y señales; historial de señales y backtesting básico.
+  - Alertas (email/Telegram) para notificaciones de señales relevantes.
+
+- Calidad y CI
+  - Tests unitarios y de integración (mockear yfinance/pandas).
+  - Linter y formateo (black, isort, flake8) y hooks pre-commit.
+  - GitHub Actions para tests y lint en PRs.
+
+- Observabilidad y despliegue
+  - Logging estructurado y métricas (Prometheus / /metrics).
+  - Preparar imágenes Docker y documentación de despliegue.
+
+Notas:
+- Prioridad sugerida para implementación: 1) mover DB URI a env var + validaciones de API, 2) migraciones y relación cascade, 3) desacoplar sync a background jobs.
+- Puedo aplicar los cambios iniciales en la rama ztmp-01 y crear commits con pruebas unitarias y ejemplos de uso si autoriza la implementación.

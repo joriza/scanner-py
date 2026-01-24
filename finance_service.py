@@ -7,6 +7,10 @@ from database import db, Ticker, Price
 class FinanceService:
     @staticmethod
     def normalize_symbol(symbol):
+        # Convert BCBA:TICKER to TICKER.BA
+        if symbol.startswith('BCBA:'):
+            symbol = symbol.replace('BCBA:', '') + '.BA'
+        # Normalize for yfinance (e.g., BRK.B -> BRK-B)
         return symbol.replace('.', '-')
 
     @staticmethod

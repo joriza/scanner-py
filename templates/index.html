@@ -96,17 +96,17 @@
                     </tr>
                 `;
                 data.sort((a, b) => {
-                    // 1. Puntuación de actividad (Ambas = 2, Una = 1, Ninguna = 0)
+                    // 1. JERARQUÍA: AMBOS ACTIVOS PRIMERO
                     const scoreA = (a.emas_d_active ? 1 : 0) + (a.emas_w_active ? 1 : 0);
                     const scoreB = (b.emas_d_active ? 1 : 0) + (b.emas_w_active ? 1 : 0);
                     if (scoreA !== scoreB) return scoreB - scoreA;
 
-                    // 2. Prioridad Semanal (Menos días = más reciente)
+                    // 2. JERARQUÍA: SEMANAL MÁS RECIENTE
                     const wA = a.emas_w_days !== null ? a.emas_w_days : 9999;
                     const wB = b.emas_w_days !== null ? b.emas_w_days : 9999;
                     if (wA !== wB) return wA - wB;
 
-                    // 3. Prioridad Diaria (Desempate ante mismo Semanal)
+                    // 3. JERARQUÍA (DESEMPATE): DIARIO MÁS RECIENTE
                     const dA = a.emas_d_days !== null ? a.emas_d_days : 9999;
                     const dB = b.emas_d_days !== null ? b.emas_d_days : 9999;
                     return dA - dB;

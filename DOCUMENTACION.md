@@ -1,78 +1,35 @@
-# Documentación del Proyecto: Stock Scanner Pro
+# Documentación Técnica Detallada - Scanner Pro
 
-Este documento detalla la arquitectura, procesos de inicio y la lógica implementada para el rastreador de acciones basado en indicadores técnicos.
+## 1. Arquitectura del Sistema
+El sistema es un scanner de activos financieros que opera sobre precios de cierre diarios, utilizando una base de datos local SQLite para persistencia y `yfinance` para la sincronización de datos.
 
-## 1. Instrucciones de Inicio
+## 2. Definición de Estrategias e Indicadores
 
-### Inicio por Primera Vez (Instalación)
-Si estás en una carpeta nueva o es la primera vez que clonas el proyecto:
-1.  **Crear entorno virtual**: `python -m venv venv`
-2.  **Activar entorno**: `.\venv\Scripts\activate`
-3.  **Instalar dependencias**: `pip install flask flask-sqlalchemy yfinance pandas pandas-ta`
-4.  **Inicializar Base de Datos**: Ejecuta la aplicación; las tablas se crearán automáticamente.
-5.  **Cargar Tickers Iniciales**: Ve a la pestaña "Administración" y haz clic en "Cargar Tickers de Ejemplo".
+### 🟢 Estrategia 1: RSI + MACD (1-RSI+MACD)
+Orientada a detectar rebotes alcistas tras periodos de capitulación.
+- **RSI (14)**:
+    - **Sobreventa**: Detecta la fecha más reciente donde el RSI bajó de 30 en los últimos 365 días.
+    - **Tendencia (Rebote)**: Identifica el primer cruce alcista del RSI sobre su Media Móvil Simple (SMA 14) ocurrido *posteriormente* a la última fecha de sobreventa detectada.
+- **MACD (12, 26, 9)**:
+    - **Zona de Oportunidad**: Cruce alcista (`MACD > Signal`) ocurrido estrictamente por debajo o igual a la línea de cero (`MACD <= 0`).
+    - **Lógica de Estado (Inactivo/Rojo)**: La señal se apaga (rojo) si el cruce se vuelve bajista O si el MACD cruza por encima de cero, indicando que el activo ya no está en zona de compra ideal.
 
-### Inicio de Rutina (Siguientes Veces)
-Para sesiones normales de uso, **no es necesario reinstalar nada**:
-1.  Abre la terminal en la carpeta del proyecto.
-2.  Activa el entorno: `.\venv\Scripts\activate`
-3.  Inicia el servidor: `python -m flask run --port=5000`
+### 🔵 Estrategia 2: 3 EMAS (4, 9, 18) (Diaria + Semanal)
+Estrategia de seguimiento de tendencia de alta sensibilidad (Multi-Timeframe).
+- **Indicadores**: Medias Móviles Exponenciales (EMA) de 4, 9 y 18 períodos.
+- **Condición Alcista**: `Precio Cierre > EMA 4 AND Precio Cierre > EMA 9 AND Precio Cierre > EMA 18`.
+- **Temporalidad Diaria**: Basada en datos del día.
+- **Temporalidad Semanal**: Generada mediante resampling de datos diarios hacia cierres de viernes (`W-FRI`). Captura la tendencia estructural.
 
----
+## 3. Lógica de Ordenamiento (Jerarquía Estricta)
+Para asegurar que las oportunidades más frescas aparezcan primero, el Dashboard aplica el siguiente algoritmo de clasificación en la Estrategia 2:
 
-## 2. Descripción Operativa
-La aplicación funciona mediante un **backend en Flask (Python)** y una **interfaz web (HTML/JS/CSS)**. Los datos son provistos por Yahoo Finance de forma gratuita.
+1.  **Criterio 1 (Actividad)**: Se asigna una puntuación. Los activos que cumplen la condición en **Ambas** temporalidades (Diario + Semanal) tienen prioridad máxima.
+2.  **Criterio 2 (Semanal)**: Ante empate de puntuación, se ordena por la fecha **Semanal más reciente** (menor cantidad de días desde el cruce).
+3.  **Criterio 3 (Diario - Desempate)**: Si la fecha semanal es idéntica (común en cierres de viernes), se ordena por la fecha **Diaria más reciente**.
+4.  **Criterio 4 (Histórico)**: Finalmente, los activos que no cumplen hoy se muestran según cuándo fue la última vez que estuvieron activos.
 
-### Arquitectura de Datos
-*   **Persistentencia**: Se utiliza **SQLite** (`scanner.db`) para guardar:
-    *   Listado de tickers a seguir.
-    *   Historial de precios (OHLCV) diario de cada ticker.
-*   **Sincronización Incremental**: La app no descarga todo el historial cada vez. Solo descarga los datos desde la última fecha guardada en la base de datos hasta hoy, optimizando velocidad y consumo de datos.
-
----
-
-## 3. Lógica de Indicadores (Etapa 1 - Diaria)
-Los indicadores se calculan "en memoria" al momento de abrir el Dashboard para asegurar flexibilidad.
-
-### Estrategias Implementadas:
-
-#### 1-RSI+MACD
-1.  **RSI < 30 (1 año)**: Fecha y días desde la última sobreventa severa.
-2.  **Tendencia RSI (Rebote)**: Primer cruce alcista de RSI sobre su SMA post-sobreventa.
-3.  **Oportunidad MACD**: Cruce alcista bajo cero (12, 26, 9).
-
-#### 2-3_EMAS
-1.  **Precio > 3 EMAS**: Detecta cuando el **Precio de Cierre** se posiciona simultáneamente por encima de las Medias Móviles Exponenciales (EMA) de **4, 9 y 18 períodos**.
-2.  **Visualización**: Muestra la fecha en que se produjo la condición por última vez y hace cuántos días. Si el precio sigue por encima hoy, la señal aparece en **Verde**, de lo contrario en **Rojo**.
-
----
-
-## 4. Selección de Estrategias
-El Dashboard incluye un selector que permite cambiar entre estrategias. Al cambiar la opción:
-*   La tabla se actualiza dinámicamente.
-*   Los encabezados cambian para reflejar los indicadores pertinentes.
-*   El ordenamiento se ajusta automáticamente (los eventos más recientes de cada estrategia aparecen primero).
-
----
-
-## 4. Control de Versiones
-El proyecto se gestiona con Git:
-- **Rama master**: Versión estable Etapa 1.
-- **Rama [Fecha ISO]**: Ramas de trabajo diario (ej. `2026-01-23`).
-
----
-
-## 4. Estructura de Archivos
-*   `app.py`: Servidor y rutas de la API.
-*   `database.py`: Modelos de la base de datos.
-*   `finance_service.py`: Lógica de descarga de datos y cálculos matemáticos.
-*   `static/style.css`: Estética moderna y Modo Oscuro.
-*   `templates/`: Interfaces visuales (Dashboard y Admin).
-*   `venv/`: Entorno virtual de Python (aislado del sistema).
-
----
-
-## 5. Mantenimiento (Etapa 2 - Planificado)
-*   **Carga Masiva**: Implementada en la interfaz de Administración.
-*   **Nuevas Temporalidades**: Próximamente Weekly y Hourly.
-*   **Gráficos Interactivos**: Integración de Lightweight Charts.
+## 4. Notas para Desarrolladores / Agentes AI
+- **Frecuencia de Datos**: El sistema asume que la sincronización se realiza post-cierre de mercado.
+- **Resampling Semanal**: Es crítico usar `W-FRI` para evitar proyecciones de fechas futuras (anomalía de días negativos corregida).
+- **Interfaz**: El rendered es dinámico. El cambio de estrategia en el selector dispara una reconstrucción completa de los encabezados de la tabla y una reclasificación de los datos en tiempo real.

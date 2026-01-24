@@ -1,13 +1,26 @@
 from flask import Flask, render_template, jsonify, request
-from flasgger import Swagger
+# flasgger is optional in production; if missing, disable Swagger UI but keep app running.
+try:
+    from flasgger import Swagger
+    _HAS_FLASGGER = True
+except Exception:
+    Swagger = None
+    _HAS_FLASGGER = False
 from database import db, init_db, Ticker, Price
 from finance_service import FinanceService
 import os
 
 app = Flask(__name__)
 # Use DATABASE_URL env var if provided (for deployment platforms like Render).
-# Fallback to relative sqlite path for local development.
-db_path = os.environ.get('DATABASE_URL', 'sqlite:///instance/scanner.db')
+# Fallback to a sqlite DB path resolved to an absolute path for local development.
+_db_env = os.environ.get('DATABASE_URL')
+if _db_env:
+    db_path = _db_env
+else:
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+    db_file = os.path.join(base_dir, 'instance', 'scanner.db')
+    # Ensure SQLite URI uses forward slashes
+    db_path = f"sqlite:///{db_file.replace('\\\\', '/')}"
 app.config['SQLALCHEMY_DATABASE_URI'] = db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 

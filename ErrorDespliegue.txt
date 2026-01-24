@@ -1,30 +1,123 @@
-2026-01-24T23:13:16.304415539Z ==> It looks like we don't have access to your repo, but we'll try to clone it anyway.
-2026-01-24T23:13:16.304430569Z ==> Cloning from https://github.com/joriza/scanner-py
-2026-01-24T23:13:16.747425208Z ==> Checking out commit ceb4a81ba3b880eba04d7c268d286244826ac650 in branch master
-2026-01-24T23:13:19.017721562Z ==> Installing Python version 3.11.5...
-2026-01-24T23:13:26.559267504Z ==> Using Python version 3.11.5 via /opt/render/project/src/.python-version
-2026-01-24T23:13:26.583510519Z ==> Docs on specifying a Python version: https://render.com/docs/python-version
-2026-01-24T23:13:30.354234716Z ==> Using Poetry version 2.1.3 (default)
-2026-01-24T23:13:30.39814678Z ==> Docs on specifying a Poetry version: https://render.com/docs/poetry-version
-2026-01-24T23:13:30.478643787Z ==> Running build command 'pip install -r requirements.txt'...
-2026-01-24T23:13:31.182435027Z Collecting Flask==2.2.5 (from -r requirements.txt (line 1))
-2026-01-24T23:13:31.182672812Z   Obtaining dependency information for Flask==2.2.5 from https://files.pythonhosted.org/packages/9f/1a/8b6d48162861009d1e017a9740431c78d860809773b66cac220a11aa3310/Flask-2.2.5-py3-none-any.whl.metadata
-2026-01-24T23:13:31.228710091Z   Downloading Flask-2.2.5-py3-none-any.whl.metadata (3.9 kB)
-2026-01-24T23:13:31.606911479Z Collecting Flask-SQLAlchemy==3.1.1 (from -r requirements.txt (line 2))
-2026-01-24T23:13:31.607223146Z   Obtaining dependency information for Flask-SQLAlchemy==3.1.1 from https://files.pythonhosted.org/packages/1d/6a/89963a5c6ecf166e8be29e0d1bf6806051ee8fe6c82e232842e3aeac9204/flask_sqlalchemy-3.1.1-py3-none-any.whl.metadata
-2026-01-24T23:13:31.613576718Z   Downloading flask_sqlalchemy-3.1.1-py3-none-any.whl.metadata (3.4 kB)
-2026-01-24T23:13:31.923437453Z Collecting yfinance==0.2.33 (from -r requirements.txt (line 3))
-2026-01-24T23:13:31.923659347Z   Obtaining dependency information for yfinance==0.2.33 from https://files.pythonhosted.org/packages/09/82/5a5eee685095a6c1f8968db75bba8536baa8046c970be25e1ac91a843839/yfinance-0.2.33-py2.py3-none-any.whl.metadata
-2026-01-24T23:13:31.929180142Z   Downloading yfinance-0.2.33-py2.py3-none-any.whl.metadata (11 kB)
-2026-01-24T23:13:32.405575755Z Collecting pandas>=1.3.0 (from -r requirements.txt (line 4))
-2026-01-24T23:13:32.40578258Z   Obtaining dependency information for pandas>=1.3.0 from https://files.pythonhosted.org/packages/62/fb/89319812eb1d714bfc04b7f177895caeba8ab4a37ef6712db75ed786e2e0/pandas-3.0.0-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata
-2026-01-24T23:13:32.410361795Z   Downloading pandas-3.0.0-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (79 kB)
-2026-01-24T23:13:32.456699351Z      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 79.5/79.5 kB 1.6 MB/s eta 0:00:00
-2026-01-24T23:13:32.47827639Z ERROR: Ignored the following versions that require a different python version: 0.4.67b0 Requires-Python >=3.12; 0.4.71b0 Requires-Python >=3.12
-2026-01-24T23:13:32.478434733Z ERROR: Could not find a version that satisfies the requirement pandas-ta==0.4.67b0 (from versions: none)
-2026-01-24T23:13:32.478624387Z ERROR: No matching distribution found for pandas-ta==0.4.67b0
-2026-01-24T23:13:32.641793516Z 
-2026-01-24T23:13:32.641828927Z [notice] A new release of pip is available: 23.2.1 -> 25.3
-2026-01-24T23:13:32.641833237Z [notice] To update, run: pip install --upgrade pip
-2026-01-24T23:13:32.750263375Z ==> Build failed 😞
-2026-01-24T23:13:32.750282736Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2026-01-24T23:20:07.52223265Z ==> It looks like we don't have access to your repo, but we'll try to clone it anyway.
+2026-01-24T23:20:07.522388593Z ==> Cloning from https://github.com/joriza/scanner-py
+2026-01-24T23:20:08.058620032Z ==> Checking out commit 17ddd74f59dd07771a6a6e10b3478771ae1a8656 in branch master
+2026-01-24T23:20:12.73979341Z ==> Installing Python version 3.12.1...
+2026-01-24T23:20:22.487840401Z ==> Using Python version 3.12.1 via /opt/render/project/src/.python-version
+2026-01-24T23:20:22.511982516Z ==> Docs on specifying a Python version: https://render.com/docs/python-version
+2026-01-24T23:20:27.156173569Z ==> Using Poetry version 2.1.3 (default)
+2026-01-24T23:20:27.207199988Z ==> Docs on specifying a Poetry version: https://render.com/docs/poetry-version
+2026-01-24T23:20:27.282986516Z ==> Running build command 'pip install -r requirements.txt'...
+2026-01-24T23:20:28.14231097Z Collecting Flask==3.0.0 (from -r requirements.txt (line 1))
+2026-01-24T23:20:28.142544195Z   Obtaining dependency information for Flask==3.0.0 from https://files.pythonhosted.org/packages/36/42/015c23096649b908c809c69388a805a571a3bea44362fe87e33fc3afa01f/flask-3.0.0-py3-none-any.whl.metadata
+2026-01-24T23:20:28.190982538Z   Downloading flask-3.0.0-py3-none-any.whl.metadata (3.6 kB)
+2026-01-24T23:20:28.602193749Z Collecting Flask-SQLAlchemy==3.1.1 (from -r requirements.txt (line 2))
+2026-01-24T23:20:28.602384202Z   Obtaining dependency information for Flask-SQLAlchemy==3.1.1 from https://files.pythonhosted.org/packages/1d/6a/89963a5c6ecf166e8be29e0d1bf6806051ee8fe6c82e232842e3aeac9204/flask_sqlalchemy-3.1.1-py3-none-any.whl.metadata
+2026-01-24T23:20:28.608965466Z   Downloading flask_sqlalchemy-3.1.1-py3-none-any.whl.metadata (3.4 kB)
+2026-01-24T23:20:28.728844552Z Collecting yfinance==0.2.33 (from -r requirements.txt (line 3))
+2026-01-24T23:20:28.729007595Z   Obtaining dependency information for yfinance==0.2.33 from https://files.pythonhosted.org/packages/09/82/5a5eee685095a6c1f8968db75bba8536baa8046c970be25e1ac91a843839/yfinance-0.2.33-py2.py3-none-any.whl.metadata
+2026-01-24T23:20:28.734485085Z   Downloading yfinance-0.2.33-py2.py3-none-any.whl.metadata (11 kB)
+2026-01-24T23:20:29.058125961Z Collecting pandas==2.1.4 (from -r requirements.txt (line 4))
+2026-01-24T23:20:29.058375867Z   Obtaining dependency information for pandas==2.1.4 from https://files.pythonhosted.org/packages/5b/5f/076b1ce74f80df0a9db244d30e30c4d4dee45342cbfa5f3e01f64cadf663/pandas-2.1.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+2026-01-24T23:20:29.064589462Z   Downloading pandas-2.1.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (18 kB)
+2026-01-24T23:20:29.176155777Z Collecting pandas-ta==0.4.71b0 (from -r requirements.txt (line 5))
+2026-01-24T23:20:29.176320131Z   Obtaining dependency information for pandas-ta==0.4.71b0 from https://files.pythonhosted.org/packages/be/2f/c67d49afd31c3b02a02ecb5dd07399ed35298042e1b50d166efe2068bb0e/pandas_ta-0.4.71b0-py3-none-any.whl.metadata
+2026-01-24T23:20:29.182140727Z   Downloading pandas_ta-0.4.71b0-py3-none-any.whl.metadata (2.3 kB)
+2026-01-24T23:20:29.380651043Z Collecting flasgger==0.9.7.1 (from -r requirements.txt (line 6))
+2026-01-24T23:20:29.388668648Z   Downloading flasgger-0.9.7.1.tar.gz (4.0 MB)
+2026-01-24T23:20:29.590193979Z      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.0/4.0 MB 20.0 MB/s eta 0:00:00
+2026-01-24T23:20:29.815058828Z   Installing build dependencies: started
+2026-01-24T23:20:32.430089004Z   Installing build dependencies: finished with status 'done'
+2026-01-24T23:20:32.431033675Z   Getting requirements to build wheel: started
+2026-01-24T23:20:32.683743899Z   Getting requirements to build wheel: finished with status 'done'
+2026-01-24T23:20:32.684991856Z   Preparing metadata (pyproject.toml): started
+2026-01-24T23:20:32.923840449Z   Preparing metadata (pyproject.toml): finished with status 'done'
+2026-01-24T23:20:33.015047302Z Collecting gunicorn==21.2.0 (from -r requirements.txt (line 7))
+2026-01-24T23:20:33.015327988Z   Obtaining dependency information for gunicorn==21.2.0 from https://files.pythonhosted.org/packages/0e/2a/c3a878eccb100ccddf45c50b6b8db8cf3301a6adede6e31d48e8531cab13/gunicorn-21.2.0-py3-none-any.whl.metadata
+2026-01-24T23:20:33.022547565Z   Downloading gunicorn-21.2.0-py3-none-any.whl.metadata (4.1 kB)
+2026-01-24T23:20:33.178365633Z Collecting requests==2.31.0 (from -r requirements.txt (line 8))
+2026-01-24T23:20:33.17869862Z   Obtaining dependency information for requests==2.31.0 from https://files.pythonhosted.org/packages/70/8e/0e2d847013cb52cd35b38c009bb167a1a26b2ce6cd6965bf26b47bc0bf44/requests-2.31.0-py3-none-any.whl.metadata
+2026-01-24T23:20:33.184502756Z   Downloading requests-2.31.0-py3-none-any.whl.metadata (4.6 kB)
+2026-01-24T23:20:34.017647471Z Collecting SQLAlchemy==2.0.23 (from -r requirements.txt (line 9))
+2026-01-24T23:20:34.017899366Z   Obtaining dependency information for SQLAlchemy==2.0.23 from https://files.pythonhosted.org/packages/9c/af/c61d98f6c21f35b13f22259e38b47669afe960a348e2c01ce262f183dcbe/SQLAlchemy-2.0.23-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+2026-01-24T23:20:34.024449168Z   Downloading SQLAlchemy-2.0.23-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (9.6 kB)
+2026-01-24T23:20:34.144744734Z Collecting pip==24.0 (from -r requirements.txt (line 10))
+2026-01-24T23:20:34.144949268Z   Obtaining dependency information for pip==24.0 from https://files.pythonhosted.org/packages/8a/6a/19e9fe04fca059ccf770861c7d5721ab4c2aebc539889e97c7977528a53b/pip-24.0-py3-none-any.whl.metadata
+2026-01-24T23:20:34.150786195Z   Downloading pip-24.0-py3-none-any.whl.metadata (3.6 kB)
+2026-01-24T23:20:34.28207913Z Collecting Werkzeug>=3.0.0 (from Flask==3.0.0->-r requirements.txt (line 1))
+2026-01-24T23:20:34.282255654Z   Obtaining dependency information for Werkzeug>=3.0.0 from https://files.pythonhosted.org/packages/ad/e4/8d97cca767bcc1be76d16fb76951608305561c6e056811587f36cb1316a8/werkzeug-3.1.5-py3-none-any.whl.metadata
+2026-01-24T23:20:34.286821483Z   Downloading werkzeug-3.1.5-py3-none-any.whl.metadata (4.0 kB)
+2026-01-24T23:20:34.371255588Z Collecting Jinja2>=3.1.2 (from Flask==3.0.0->-r requirements.txt (line 1))
+2026-01-24T23:20:34.371414102Z   Obtaining dependency information for Jinja2>=3.1.2 from https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl.metadata
+2026-01-24T23:20:34.376096464Z   Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+2026-01-24T23:20:34.448898417Z Collecting itsdangerous>=2.1.2 (from Flask==3.0.0->-r requirements.txt (line 1))
+2026-01-24T23:20:34.44907054Z   Obtaining dependency information for itsdangerous>=2.1.2 from https://files.pythonhosted.org/packages/04/96/92447566d16df59b2a776c0fb82dbc4d9e07cd95062562af01e408583fc4/itsdangerous-2.2.0-py3-none-any.whl.metadata
+2026-01-24T23:20:34.453931376Z   Downloading itsdangerous-2.2.0-py3-none-any.whl.metadata (1.9 kB)
+2026-01-24T23:20:34.54519821Z Collecting click>=8.1.3 (from Flask==3.0.0->-r requirements.txt (line 1))
+2026-01-24T23:20:34.545393525Z   Obtaining dependency information for click>=8.1.3 from https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl.metadata
+2026-01-24T23:20:34.56173057Z   Downloading click-8.3.1-py3-none-any.whl.metadata (2.6 kB)
+2026-01-24T23:20:34.645992352Z Collecting blinker>=1.6.2 (from Flask==3.0.0->-r requirements.txt (line 1))
+2026-01-24T23:20:34.646225597Z   Obtaining dependency information for blinker>=1.6.2 from https://files.pythonhosted.org/packages/10/cb/f2ad4230dc2eb1a74edf38f1a38b9b52277f75bef262d8908e60d957e13c/blinker-1.9.0-py3-none-any.whl.metadata
+2026-01-24T23:20:34.651218415Z   Downloading blinker-1.9.0-py3-none-any.whl.metadata (1.6 kB)
+2026-01-24T23:20:35.231779198Z Collecting numpy>=1.16.5 (from yfinance==0.2.33->-r requirements.txt (line 3))
+2026-01-24T23:20:35.258821316Z   Obtaining dependency information for numpy>=1.16.5 from https://files.pythonhosted.org/packages/d9/7d/9c8a781c88933725445a859cac5d01b5871588a15969ee6aeb618ba99eee/numpy-2.4.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata
+2026-01-24T23:20:35.265992892Z   Downloading numpy-2.4.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+2026-01-24T23:20:35.367368936Z Collecting multitasking>=0.0.7 (from yfinance==0.2.33->-r requirements.txt (line 3))
+2026-01-24T23:20:35.372038007Z   Downloading multitasking-0.0.12.tar.gz (19 kB)
+2026-01-24T23:20:35.412208461Z   Installing build dependencies: started
+2026-01-24T23:20:37.80617528Z   Installing build dependencies: finished with status 'done'
+2026-01-24T23:20:37.806819064Z   Getting requirements to build wheel: started
+2026-01-24T23:20:37.988945244Z   Getting requirements to build wheel: finished with status 'done'
+2026-01-24T23:20:37.989955236Z   Preparing metadata (pyproject.toml): started
+2026-01-24T23:20:38.174319534Z   Preparing metadata (pyproject.toml): finished with status 'done'
+2026-01-24T23:20:38.711653887Z Collecting lxml>=4.9.1 (from yfinance==0.2.33->-r requirements.txt (line 3))
+2026-01-24T23:20:38.711877332Z   Obtaining dependency information for lxml>=4.9.1 from https://files.pythonhosted.org/packages/c6/d1/232b3309a02d60f11e71857778bfcd4acbdb86c07db8260caf7d008b08f8/lxml-6.0.2-cp312-cp312-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata
+2026-01-24T23:20:38.717127226Z   Downloading lxml-6.0.2-cp312-cp312-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata (3.6 kB)
+2026-01-24T23:20:38.839338513Z Collecting appdirs>=1.4.4 (from yfinance==0.2.33->-r requirements.txt (line 3))
+2026-01-24T23:20:38.839709671Z   Obtaining dependency information for appdirs>=1.4.4 from https://files.pythonhosted.org/packages/3b/00/2344469e2084fb287c2e0b57b72910309874c3245463acd6cf5e3db69324/appdirs-1.4.4-py2.py3-none-any.whl.metadata
+2026-01-24T23:20:38.844753871Z   Downloading appdirs-1.4.4-py2.py3-none-any.whl.metadata (9.0 kB)
+2026-01-24T23:20:38.953531296Z Collecting pytz>=2022.5 (from yfinance==0.2.33->-r requirements.txt (line 3))
+2026-01-24T23:20:38.953748451Z   Obtaining dependency information for pytz>=2022.5 from https://files.pythonhosted.org/packages/81/c4/34e93fe5f5429d7570ec1fa436f1986fb1f00c3e0f43a589fe2bbcd22c3f/pytz-2025.2-py2.py3-none-any.whl.metadata
+2026-01-24T23:20:38.959552427Z   Downloading pytz-2025.2-py2.py3-none-any.whl.metadata (22 kB)
+2026-01-24T23:20:39.140854919Z Collecting frozendict>=2.3.4 (from yfinance==0.2.33->-r requirements.txt (line 3))
+2026-01-24T23:20:39.141044003Z   Obtaining dependency information for frozendict>=2.3.4 from https://files.pythonhosted.org/packages/38/74/f94141b38a51a553efef7f510fc213894161ae49b88bffd037f8d2a7cb2f/frozendict-2.4.7-py3-none-any.whl.metadata
+2026-01-24T23:20:39.181330299Z   Downloading frozendict-2.4.7-py3-none-any.whl.metadata (23 kB)
+2026-01-24T23:20:39.271743084Z Collecting peewee>=3.16.2 (from yfinance==0.2.33->-r requirements.txt (line 3))
+2026-01-24T23:20:39.272204394Z   Obtaining dependency information for peewee>=3.16.2 from https://files.pythonhosted.org/packages/1a/41/19c65578ef9a54b3083253c68a607f099642747168fe00f3a2bceb7c3a34/peewee-3.19.0-py3-none-any.whl.metadata
+2026-01-24T23:20:39.276922237Z   Downloading peewee-3.19.0-py3-none-any.whl.metadata (7.0 kB)
+2026-01-24T23:20:39.36997135Z Collecting beautifulsoup4>=4.11.1 (from yfinance==0.2.33->-r requirements.txt (line 3))
+2026-01-24T23:20:39.370150754Z   Obtaining dependency information for beautifulsoup4>=4.11.1 from https://files.pythonhosted.org/packages/1a/39/47f9197bdd44df24d67ac8893641e16f386c984a0619ef2ee4c51fbbc019/beautifulsoup4-4.14.3-py3-none-any.whl.metadata
+2026-01-24T23:20:39.374997739Z   Downloading beautifulsoup4-4.14.3-py3-none-any.whl.metadata (3.8 kB)
+2026-01-24T23:20:39.485204165Z Collecting html5lib>=1.1 (from yfinance==0.2.33->-r requirements.txt (line 3))
+2026-01-24T23:20:39.485507642Z   Obtaining dependency information for html5lib>=1.1 from https://files.pythonhosted.org/packages/6c/dd/a834df6482147d48e225a49515aabc28974ad5a4ca3215c18a882565b028/html5lib-1.1-py2.py3-none-any.whl.metadata
+2026-01-24T23:20:39.490744316Z   Downloading html5lib-1.1-py2.py3-none-any.whl.metadata (16 kB)
+2026-01-24T23:20:39.6312015Z Collecting numpy>=1.16.5 (from yfinance==0.2.33->-r requirements.txt (line 3))
+2026-01-24T23:20:39.631461735Z   Obtaining dependency information for numpy>=1.16.5 from https://files.pythonhosted.org/packages/0f/50/de23fde84e45f5c4fda2488c759b69990fd4512387a8632860f3ac9cd225/numpy-1.26.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+2026-01-24T23:20:39.637096388Z   Downloading numpy-1.26.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (61 kB)
+2026-01-24T23:20:39.681319329Z      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 61.0/61.0 kB 1.2 MB/s eta 0:00:00
+2026-01-24T23:20:39.753922708Z Collecting python-dateutil>=2.8.2 (from pandas==2.1.4->-r requirements.txt (line 4))
+2026-01-24T23:20:39.754131002Z   Obtaining dependency information for python-dateutil>=2.8.2 from https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata
+2026-01-24T23:20:39.759134601Z   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+2026-01-24T23:20:39.860935964Z Collecting tzdata>=2022.1 (from pandas==2.1.4->-r requirements.txt (line 4))
+2026-01-24T23:20:39.872760972Z   Obtaining dependency information for tzdata>=2022.1 from https://files.pythonhosted.org/packages/c7/b0/003792df09decd6849a5e39c28b513c06e84436a54440380862b5aeff25d/tzdata-2025.3-py2.py3-none-any.whl.metadata
+2026-01-24T23:20:39.877145987Z   Downloading tzdata-2025.3-py2.py3-none-any.whl.metadata (1.4 kB)
+2026-01-24T23:20:40.162682335Z Collecting numba==0.61.2 (from pandas-ta==0.4.71b0->-r requirements.txt (line 5))
+2026-01-24T23:20:40.162957941Z   Obtaining dependency information for numba==0.61.2 from https://files.pythonhosted.org/packages/9a/2d/e518df036feab381c23a624dac47f8445ac55686ec7f11083655eb707da3/numba-0.61.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata
+2026-01-24T23:20:40.169284259Z   Downloading numba-0.61.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.8 kB)
+2026-01-24T23:20:40.203816429Z INFO: pip is looking at multiple versions of pandas-ta to determine which version is compatible with other requirements. This could take a while.
+2026-01-24T23:20:40.257595699Z ERROR: Cannot install -r requirements.txt (line 3), -r requirements.txt (line 4) and -r requirements.txt (line 5) because these package versions have conflicting dependencies.
+2026-01-24T23:20:40.258005197Z 
+2026-01-24T23:20:40.258009837Z The conflict is caused by:
+2026-01-24T23:20:40.258012588Z     yfinance 0.2.33 depends on numpy>=1.16.5
+2026-01-24T23:20:40.258015158Z     pandas 2.1.4 depends on numpy<2 and >=1.26.0; python_version >= "3.12"
+2026-01-24T23:20:40.258016898Z     pandas-ta 0.4.71b0 depends on numpy>=2.2.6
+2026-01-24T23:20:40.258018488Z 
+2026-01-24T23:20:40.258020198Z To fix this you could try to:
+2026-01-24T23:20:40.258022538Z 1. loosen the range of package versions you've specified
+2026-01-24T23:20:40.258024308Z 2. remove package versions to allow pip attempt to solve the dependency conflict
+2026-01-24T23:20:40.258025988Z 
+2026-01-24T23:20:40.258223872Z ERROR: ResolutionImpossible: for help visit https://pip.pypa.io/en/latest/topics/dependency-resolution/#dealing-with-dependency-conflicts
+2026-01-24T23:20:40.323116063Z 
+2026-01-24T23:20:40.323142554Z [notice] A new release of pip is available: 23.2.1 -> 25.3
+2026-01-24T23:20:40.323146444Z [notice] To update, run: pip install --upgrade pip
+2026-01-24T23:20:40.726252638Z ==> Build failed 😞
+2026-01-24T23:20:40.726268188Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys

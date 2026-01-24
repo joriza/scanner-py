@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Pro - Administración</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav>
+        <a href="/">Dashboard</a>
+        <a href="/admin" class="active">Administración</a>
+    </nav>
+
+    <div class="container" style="max-width: 800px">
+        <h1>Administración de Tickers</h1>
+
+        <div class="card" style="margin-bottom: 2rem">
+            <h3>Agregar Nuevo Ticker</h3>
+            <div class="controls" style="margin-bottom: 1rem">
+                <input type="text" id="symbolInput" placeholder="Ej: TSLA, AAPL, BRK.B">
+                <button id="addBtn">Agregar</button>
+            </div>
+            <button id="seedBtn" class="secondary" style="width: 100%">Cargar Tickers de Ejemplo</button>
+        </div>
+
+        <div class="card">
+            <h3>Listado de Vigilancia</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Símbolo</th>
+                        <th>Última Sincronización</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tickerList">
+                    <!-- Loaded dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const tickerList = document.getElementById('tickerList');
+        const symbolInput = document.getElementById('symbolInput');
+        const addBtn = document.getElementById('addBtn');
+        const seedBtn = document.getElementById('seedBtn');
+
+        async function loadTickers() {
+            const response = await fetch('/api/tickers');
+            const data = await response.json();
+            renderTickers(data);
+        }
+
+        function renderTickers(data) {
+            tickerList.innerHTML = '';
+            data.forEach(t => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-weight: 600">${t.symbol}</td>
+                    <td>${t.last_sync}</td>
+                    <td><button class="secondary" style="padding: 0.4rem 0.8rem; border-color: var(--danger); color: var(--danger)" onclick="deleteTicker(${t.id})">Eliminar</button></td>
+                `;
+                tickerList.appendChild(row);
+            });
+        }
+
+        addBtn.addEventListener('click', async () => {
+            const symbol = symbolInput.value;
+            if (!symbol) return;
+
+            const response = await fetch('/api/tickers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symbol })
+            });
+
+            if (response.ok) {
+                symbolInput.value = '';
+                loadTickers();
+            } else {
+                const err = await response.json();
+                alert(err.error);
+            }
+        });
+
+        seedBtn.addEventListener('click', async () => {
+            await fetch('/api/seed', { method: 'POST' });
+            loadTickers();
+        });
+
+        async function deleteTicker(id) {
+            if (!confirm('¿Seguro que deseas eliminar este ticker y sus datos?')) return;
+            await fetch(`/api/tickers/${id}`, { method: 'DELETE' });
+            loadTickers();
+        }
+
+        loadTickers();
+    </script>
+</body>
+
+</html>

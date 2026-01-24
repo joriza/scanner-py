@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Pro - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav>
+        <a href="/" class="active">Dashboard</a>
+        <a href="/admin">Administración</a>
+    </nav>
+
+    <div class="container">
+        <h1>Dashboard de Señales Técnicas</h1>
+
+        <div class="controls">
+            <button id="refreshBtn">Actualizar Precios</button>
+            <button id="scanBtn" class="secondary">Escanear Indicadores</button>
+            <span id="loader" class="loading-spinner">Procesando...</span>
+        </div>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Símbolo</th>
+                        <th>Precio</th>
+                        <th>RSI(14)</th>
+                        <th>RSI < 30 (1 año)</th>
+                        <th>Tendencia RSI</th>
+                        <th>MACD Inicio (30d)</th>
+                        <th>MACD Hoy</th>
+                        <th>Ult. Sync</th>
+                    </tr>
+                </thead>
+                <tbody id="signalTable">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const loader = document.getElementById('loader');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const scanBtn = document.getElementById('scanBtn');
+        const tableBody = document.getElementById('signalTable');
+
+        async function loadSignals() {
+            loader.style.display = 'inline';
+            try {
+                const response = await fetch('/api/scan');
+                const data = await response.json();
+                renderTable(data);
+            } catch (error) {
+                console.error('Error scanning:', error);
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        function renderTable(data) {
+            tableBody.innerHTML = '';
+            data.forEach(s => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-weight: 600">${s.symbol}</td>
+                    <td>$${s.price.toFixed(2)} <br><small style="color:var(--text-muted)">${s.price_date}</small></td>
+                    <td>${s.rsi ? s.rsi.toFixed(2) : '-'}</td>
+                    <td>
+                        <span class="signal ${s.days_since_rsi_30 !== null ? 'signal-yes' : 'signal-no'}">
+                            ${s.days_since_rsi_30 !== null ? `Hace ${s.days_since_rsi_30} d <br>(${s.date_rsi_30})` : 'Sin Sobreventa'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="signal ${s.days_since_rsi_bullish !== null ? 'signal-yes' : 'signal-no'}">
+                            ${s.days_since_rsi_bullish !== null ? `Alcista (${s.days_since_rsi_bullish} d)<br>(${s.date_rsi_bullish})` : (s.date_rsi_30 ? 'Pendiente' : 'N/A')}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="signal ${s.macd_first_date !== null ? 'signal-yes' : 'signal-no'}">
+                            ${s.macd_first_date !== null ? s.macd_first_date : 'No'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="signal ${s.macd_is_active ? 'signal-yes' : 'signal-no'}">
+                            ${s.macd_is_active ? 'Activo' : 'No'}
+                        </span>
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 0.8rem">${s.last_sync}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        refreshBtn.addEventListener('click', async () => {
+            loader.style.display = 'inline';
+            try {
+                await fetch('/api/refresh', { method: 'POST' });
+                await loadSignals();
+            } catch (error) {
+                console.error('Error refreshing:', error);
+            } finally {
+                loader.style.display = 'none';
+            }
+        });
+
+        scanBtn.addEventListener('click', loadSignals);
+
+        // Initial load
+        loadSignals();
+    </script>
+</body>
+
+</html>

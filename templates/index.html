@@ -33,12 +33,8 @@
 
         <div class="card">
             <table>
-                <thead id="tableHead">
-                    <!-- Dinámico -->
-                </thead>
-                <tbody id="signalTable">
-                    <!-- Data will be loaded here -->
-                </tbody>
+                <thead id="tableHead"></thead>
+                <tbody id="signalTable"></tbody>
             </table>
         </div>
     </div>
@@ -59,14 +55,15 @@
                 const data = await response.json();
                 renderTable(data, strategy);
             } catch (error) {
-                console.error('Error scanning:', error);
+                console.error('Error:', error);
             } finally {
                 loader.style.display = 'none';
             }
         }
 
         function renderTable(data, strategy) {
-            // Configurar Encabezados y Orden
+            tableBody.innerHTML = '';
+
             if (strategy === 'rsi_macd') {
                 tableHead.innerHTML = `
                     <tr>
@@ -85,7 +82,7 @@
                     if (b.days_since_rsi_bullish === null) return -1;
                     return a.days_since_rsi_bullish - b.days_since_rsi_bullish;
                 });
-            } else {
+            } else if (strategy === '3_emas') {
                 tableHead.innerHTML = `
                     <tr>
                         <th>Símbolo</th>
@@ -98,58 +95,33 @@
                         <th>Ult. Sync</th>
                     </tr>
                 `;
-
                 data.sort((a, b) => {
                     const bothA = a.emas_d_active && a.emas_w_active;
                     const bothB = b.emas_d_active && b.emas_w_active;
-
                     if (bothA && !bothB) return -1;
                     if (!bothA && bothB) return 1;
-
-                    // Si ambos cumplen ambas (o ninguno), priorizamos semanal más reciente
-                    if (a.emas_w_days !== null && b.emas_w_days !== null) {
-                        return a.emas_w_days - b.emas_w_days;
-                    }
+                    if (a.emas_w_days !== null && b.emas_w_days !== null) return a.emas_w_days - b.emas_w_days;
                     if (a.emas_w_days === null && b.emas_w_days !== null) return 1;
                     if (a.emas_w_days !== null && b.emas_w_days === null) return -1;
-
-                    // De lo contrario, por diario
-                    if (a.emas_d_days !== null && b.emas_d_days !== null) {
-                        return a.emas_d_days - b.emas_d_days;
-                    }
+                    if (a.emas_d_days !== null && b.emas_d_days !== null) return a.emas_d_days - b.emas_d_days;
                     return 0;
                 });
             }
 
-            tableBody.innerHTML = '';
             data.forEach(s => {
                 const row = document.createElement('tr');
-
                 if (strategy === 'rsi_macd') {
                     let macdContent = 'No';
                     let macdClass = 'signal-no';
-                    if (s.macd_status === 'active') {
-                        macdContent = `${s.macd_date} (${s.macd_days} d)`;
-                        macdClass = 'signal-yes';
-                    } else if (s.macd_status === 'inactive') {
-                        macdContent = `${s.macd_date} (${s.macd_days} d)`;
-                        macdClass = 'signal-no';
-                    }
+                    if (s.macd_status === 'active') { macdContent = `${s.macd_date} (${s.macd_days} d)`; macdClass = 'signal-yes'; }
+                    else if (s.macd_status === 'inactive') { macdContent = `${s.macd_date} (${s.macd_days} d)`; macdClass = 'signal-no'; }
 
                     row.innerHTML = `
                         <td style="font-weight: 600">${s.symbol}</td>
                         <td>$${s.price.toFixed(2)} <br><small style="color:var(--text-muted)">${s.price_date}</small></td>
                         <td>${s.rsi ? s.rsi.toFixed(2) : '-'}</td>
-                        <td>
-                            <span class="signal ${s.days_since_rsi_30 !== null ? 'signal-yes' : 'signal-no'}">
-                                ${s.days_since_rsi_30 !== null ? `Hace ${s.days_since_rsi_30} d <br>(${s.date_rsi_30})` : 'Sin Sobreventa'}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="signal ${s.days_since_rsi_bullish !== null ? 'signal-yes' : 'signal-no'}">
-                                ${s.days_since_rsi_bullish !== null ? `${s.date_rsi_bullish} (${s.days_since_rsi_bullish} d)` : (s.date_rsi_30 ? 'Pendiente' : 'N/A')}
-                            </span>
-                        </td>
+                        <td><span class="signal ${s.days_since_rsi_30 !== null ? 'signal-yes' : 'signal-no'}">${s.days_since_rsi_30 !== null ? `Hace ${s.days_since_rsi_30} d <br>(${s.date_rsi_30})` : 'Sin Sobreventa'}</span></td>
+                        <td><span class="signal ${s.days_since_rsi_bullish !== null ? 'signal-yes' : 'signal-no'}">${s.days_since_rsi_bullish !== null ? `${s.date_rsi_bullish} (${s.days_since_rsi_bullish} d)` : (s.date_rsi_30 ? 'Pendiente' : 'N/A')}</span></td>
                         <td><span class="signal ${macdClass}">${macdContent}</span></td>
                         <td style="color: var(--text-muted); font-size: 0.8rem">${s.last_sync}</td>
                     `;
@@ -160,16 +132,8 @@
                         <td>${s.ema4_d ? s.ema4_d.toFixed(2) : '-'}</td>
                         <td>${s.ema9_d ? s.ema9_d.toFixed(2) : '-'}</td>
                         <td>${s.ema18_d ? s.ema18_d.toFixed(2) : '-'}</td>
-                        <td>
-                            <span class="signal ${s.emas_d_active ? 'signal-yes' : 'signal-no'}">
-                                ${s.emas_d_date ? `${s.emas_d_date} (${s.emas_d_days} d)` : 'No'}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="signal ${s.emas_w_active ? 'signal-yes' : 'signal-no'}">
-                                ${s.emas_w_date ? `${s.emas_w_date} (${s.emas_w_days} d)` : 'No'}
-                            </span>
-                        </td>
+                        <td><span class="signal ${s.emas_d_active ? 'signal-yes' : 'signal-no'}">${s.emas_d_date ? `${s.emas_d_date} (${s.emas_d_days} d)` : 'No'}</span></td>
+                        <td><span class="signal ${s.emas_w_active ? 'signal-yes' : 'signal-no'}">${s.emas_w_date ? `${s.emas_w_date} (${s.emas_w_days} d)` : 'No'}</span></td>
                         <td style="color: var(--text-muted); font-size: 0.8rem">${s.last_sync}</td>
                     `;
                 }
@@ -179,20 +143,10 @@
 
         refreshBtn.addEventListener('click', async () => {
             loader.style.display = 'inline';
-            try {
-                await fetch('/api/refresh', { method: 'POST' });
-                await loadSignals();
-            } catch (error) {
-                console.error('Error refreshing:', error);
-            } finally {
-                loader.style.display = 'none';
-            }
+            try { await fetch('/api/refresh', { method: 'POST' }); await loadSignals(); } finally { loader.style.display = 'none'; }
         });
-
         scanBtn.addEventListener('click', loadSignals);
         strategySelect.addEventListener('change', loadSignals);
-
-        // Initial load
         loadSignals();
     </script>
 </body>

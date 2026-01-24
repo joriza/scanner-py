@@ -7,37 +7,30 @@ from database import db, Ticker, Price
 class FinanceService:
     @staticmethod
     def normalize_symbol(symbol):
-        # Normalize for yfinance (e.g., BRK.B -> BRK-B)
         return symbol.replace('.', '-')
 
     @staticmethod
     def sync_ticker_data(ticker_obj):
         symbol = FinanceService.normalize_symbol(ticker_obj.symbol)
-        
-        # Determine start date for incremental sync
         last_price = Price.query.filter_by(ticker_id=ticker_obj.id).order_by(Price.date.desc()).first()
         if last_price:
             start_date = (last_price.date + timedelta(days=1)).strftime('%Y-%m-%d')
         else:
-            start_date = (datetime.now() - timedelta(days=365*2)).strftime('%Y-%m-%d') # 2 years for context
+            start_date = (datetime.now() - timedelta(days=365*2)).strftime('%Y-%m-%d')
             
         now = datetime.now().strftime('%Y-%m-%d')
-        
         if start_date >= now:
-            return 0 # Already up to date
+            return 0
             
         data = yf.download(symbol, start=start_date, end=now, progress=False)
-        
         if data.empty:
             return 0
             
-        # If columns are MultiIndex (common in new versions of yfinance), flatten them
         if isinstance(data.columns, pd.MultiIndex):
             data.columns = data.columns.get_level_values(0)
 
         count = 0
         for index, row in data.iterrows():
-            # Check if date is already in DB (safety check)
             date_val = index.date()
             existing = Price.query.filter_by(ticker_id=ticker_obj.id, date=date_val).first()
             if not existing:
@@ -54,7 +47,6 @@ class FinanceService:
                     db.session.add(price)
                     count += 1
                 except Exception as e:
-                    print(f"Error processing row for {symbol} at {date_val}: {e}")
                     continue
         
         ticker_obj.last_sync = datetime.now()
@@ -63,7 +55,6 @@ class FinanceService:
 
     @staticmethod
     def get_signals(ticker_obj, strategy='rsi_macd'):
-        # Load prices from DB
         prices = Price.query.filter_by(ticker_id=ticker_obj.id).order_by(Price.date.asc()).all()
         if not prices or len(prices) < 30:
             return None
@@ -88,13 +79,11 @@ class FinanceService:
         }
 
         if strategy == 'rsi_macd':
-            # Indicators
             df['RSI'] = ta.rsi(df['close'], length=14)
             df['RSI_SMA'] = ta.sma(df['RSI'], length=14)
             macd = ta.macd(df['close'])
             df = pd.concat([df, macd], axis=1)
             
-            # Signal 1: RSI < 30 in last 365 days
             one_year_ago = datetime.now().date() - timedelta(days=365)
             last_year_df = df[df.index >= one_year_ago].copy()
             rsi_under_30 = last_year_df[last_year_df['RSI'] < 30]
@@ -108,7 +97,6 @@ class FinanceService:
                 days_since_rsi_30 = (datetime.now().date() - last_date).days
                 date_rsi_30 = fmt_date(last_date)
                 
-            # Signal 2: RSI > RSI_SMA posts-oversold
             days_since_rsi_bullish = None
             date_rsi_bullish = None
             if date_obj_rsi_30:
@@ -119,7 +107,6 @@ class FinanceService:
                     days_since_rsi_bullish = (datetime.now().date() - first_date_after).days
                     date_rsi_bullish = fmt_date(first_date_after)
 
-            # Signal 3: Unified MACD Opportunity (12, 26, 9)
             macd_col = 'MACD_12_26_9'
             signal_col = 'MACDs_12_26_9'
             thirty_days_ago = datetime.now().date() - timedelta(days=30)
@@ -133,15 +120,17 @@ class FinanceService:
                 is_active_today = last_30_df['cond'].iloc[-1]
                 active_dates = last_30_df[last_30_df['cond']].index
                 if is_active_today:
-                    current_streak = last_30_df['cond'].tolist()
-                    start_idx = len(current_streak) - 1
-                    while start_idx >= 0 and current_streak[start_idx]: start_idx -= 1
-                    start_date = last_30_df.index[start_idx + 1]
-                    macd_status = 'active'; macd_date = fmt_date(start_date)
+                    streak = last_30_df['cond'].tolist()
+                    idx = len(streak) - 1
+                    while idx >= 0 and streak[idx]: idx -= 1
+                    start_date = last_30_df.index[idx + 1]
+                    macd_status = 'active'
+                    macd_date = fmt_date(start_date)
                     macd_days = (datetime.now().date() - start_date).days
                 elif not active_dates.empty:
                     last_active_date = active_dates[-1]
-                    macd_status = 'inactive'; macd_date = fmt_date(last_active_date)
+                    macd_status = 'inactive'
+                    macd_date = fmt_date(last_active_date)
                     macd_days = (datetime.now().date() - last_active_date).days
 
             result.update({
@@ -156,7 +145,7 @@ class FinanceService:
             })
 
         elif strategy == '3_emas':
-            # Strategy 2: 3 EMAS (4, 9, 18) - DAILY
+            # DAILY
             df['EMA4_D'] = ta.ema(df['close'], length=4)
             df['EMA9_D'] = ta.ema(df['close'], length=9)
             df['EMA18_D'] = ta.ema(df['close'], length=18)
@@ -171,23 +160,17 @@ class FinanceService:
                     idx = len(streak) - 1
                     while idx >= 0 and streak[idx]: idx -= 1
                     d_start = df.index[idx + 1]
-                    emas_d_date = fmt_date(d_start); emas_d_days = (datetime.now().date() - d_start).days
+                    emas_d_date = fmt_date(d_start)
+                    emas_d_days = (datetime.now().date() - d_start).days
                 else:
                     d_last = df[df['emas_cond_d']].index[-1]
-                    emas_d_date = fmt_date(d_last); emas_d_days = (datetime.now().date() - d_last).days
+                    emas_d_date = fmt_date(d_last)
+                    emas_d_days = (datetime.now().date() - d_last).days
 
-            # Strategy 2: 3 EMAS (4, 9, 18) - WEEKLY (Resampled from Daily)
-            # We need to resample the original OHLCV data
+            # WEEKLY
             df_w = df[['open', 'high', 'low', 'close', 'volume']].copy()
-            # Resample to weekly (W-MON means week starts on Monday)
-            df_w = df_w.resample('W-MON').agg({
-                'open': 'first',
-                'high': 'max',
-                'low': 'min',
-                'close': 'last',
-                'volume': 'sum'
-            })
-            
+            df_w.index = pd.to_datetime(df_w.index)
+            df_w = df_w.resample('W-MON').agg({'open': 'first', 'high': 'max', 'low': 'min', 'close': 'last', 'volume': 'sum'})
             df_w['EMA4_W'] = ta.ema(df_w['close'], length=4)
             df_w['EMA9_W'] = ta.ema(df_w['close'], length=9)
             df_w['EMA18_W'] = ta.ema(df_w['close'], length=18)
@@ -202,10 +185,12 @@ class FinanceService:
                     idx = len(streak) - 1
                     while idx >= 0 and streak[idx]: idx -= 1
                     w_start = df_w.index[idx + 1]
-                    emas_w_date = fmt_date(w_start); emas_w_days = (datetime.now().date() - w_start.days if hasattr(w_start, 'days') else (datetime.now().date() - w_start.date()).days)
+                    emas_w_date = fmt_date(w_start)
+                    emas_w_days = (datetime.now().date() - w_start.date()).days
                 else:
                     w_last = df_w[df_w['emas_cond_w']].index[-1]
-                    emas_w_date = fmt_date(w_last); emas_w_days = (datetime.now().date() - w_last.date()).days
+                    emas_w_date = fmt_date(w_last)
+                    emas_w_days = (datetime.now().date() - w_last.date()).days
 
             result.update({
                 'emas_d_active': emas_d_active_today,

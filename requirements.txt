@@ -7,4 +7,3 @@ flasgger==0.9.7.1
 gunicorn==20.1.0
 requests==2.31.0
 SQLAlchemy==2.0.23
-python_version==3.10.*

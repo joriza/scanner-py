@@ -41,9 +41,10 @@ Los indicadores se calculan "en memoria" al momento de abrir el Dashboard para a
 2.  **Tendencia RSI (Rebote Alcista)**:
     *   Busca la **primera fecha (más lejana)** posterior a la última sobreventa donde el RSI cruzó por encima de su media móvil (SMA 14).
     *   Esto permite identificar el inicio del cambio de tendencia tras un piso.
-3.  **Oportunidad MACD (Dividido en 2 columnas)**:
-    *   **MACD Inicio**: Muestra la fecha del primer cruce positivo (`MACD > Signal`) ocurrido bajo cero en los últimos 30 días.
-    *   **MACD Hoy**: Muestra si dicha condición de oportunidad sigue activa en la última fecha de mercado.
+3.  **Oportunidad MACD (Columna Unificada)**:
+    *   **Parámetros**: Período rápido 12, lento 26, señal 9 (Configuración estándar).
+    *   **Lógica**: Muestra la fecha de inicio del cruce positivo (`MACD > Signal`) ocurrido bajo cero en los últimos 30 días.
+    *   **Estado Visual**: Color verde si sigue activo, color rojo si dejó de cumplirse (mostrando la fecha de salida).
 
 ---
 

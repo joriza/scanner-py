@@ -1,27 +1,85 @@
+
+Search
+
+Live tail
+GMT-3
+
+
+
+Downloading pytz-2025.2-py2.py3-none-any.whl (509 kB)
+Downloading werkzeug-3.1.5-py3-none-any.whl (225 kB)
+Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+Downloading markupsafe-3.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+Downloading click-8.3.1-py3-none-any.whl (108 kB)
+Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
+Downloading greenlet-3.3.1-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (612 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 612.9/612.9 kB 46.9 MB/s eta 0:00:00
+Downloading frozendict-2.4.7-py3-none-any.whl (16 kB)
+Downloading peewee-3.19.0-py3-none-any.whl (411 kB)
+Downloading numba-0.61.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (3.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.9/3.9 MB 135.7 MB/s eta 0:00:00
+Menu
+Downloading llvmlite-0.44.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (42.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 42.4/42.4 MB 138.6 MB/s eta 0:00:00
+Downloading websockets-16.0-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (184 kB)
+Downloading tqdm-4.67.1-py3-none-any.whl (78 kB)
+Downloading certifi-2026.1.4-py3-none-any.whl (152 kB)
+Downloading tzdata-2025.3-py2.py3-none-any.whl (348 kB)
+Downloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Downloading platformdirs-4.5.1-py3-none-any.whl (18 kB)
+Downloading cffi-2.0.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (219 kB)
+Downloading pycparser-3.0-py3-none-any.whl (48 kB)
 Downloading protobuf-6.33.4-cp39-abi3-manylinux2014_x86_64.whl (323 kB)
 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
 Downloading soupsieve-2.8.3-py3-none-any.whl (37 kB)
 Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
 Downloading gunicorn-20.1.0-py3-none-any.whl (79 kB)
+Downloading flasgger-0.9.5-py2.py3-none-any.whl (3.8 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.8/3.8 MB 132.7 MB/s eta 0:00:00
+Downloading jsonschema-4.26.0-py3-none-any.whl (90 kB)
+Downloading attrs-25.4.0-py3-none-any.whl (67 kB)
+Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 73.3 MB/s eta 0:00:00
+Downloading referencing-0.37.0-py3-none-any.whl (26 kB)
+Downloading rpds_py-0.30.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (394 kB)
 Using cached setuptools-80.10.1-py3-none-any.whl (1.1 MB)
+Downloading mistune-3.2.0-py3-none-any.whl (53 kB)
 Building wheels for collected packages: multitasking
   Building wheel for multitasking (pyproject.toml): started
   Building wheel for multitasking (pyproject.toml): finished with status 'done'
-  Created wheel for multitasking: filename=multitasking-0.0.12-py3-none-any.whl size=15637 sha256=6c7cc8bc12a543d8db95199834f9474631537db0dcfc0ee40f224f50558472e3
-Menu
+  Created wheel for multitasking: filename=multitasking-0.0.12-py3-none-any.whl size=15637 sha256=2677810b37f9c106758ef0492b2325272ef4dd8e0e1f0ab428975bf7df622969
   Stored in directory: /opt/render/.cache/wheels/1e/df/0f/e2bbb22d689b30c681feb5410ab64a2523437b34c8ecfc6476
 Successfully built multitasking
-Installing collected packages: pytz, peewee, multitasking, websockets, urllib3, tzdata, typing_extensions, tqdm, soupsieve, six, setuptools, pycparser, protobuf, platformdirs, numpy, MarkupSafe, llvmlite, itsdangerous, idna, greenlet, frozendict, colorama, click, charset-normalizer, certifi, blinker, Werkzeug, SQLAlchemy, requests, python-dateutil, numba, Jinja2, gunicorn, cffi, beautifulsoup4, pandas, Flask, curl-cffi, yfinance, pandas-ta, Flask-SQLAlchemy
-Successfully installed Flask-3.1.2 Flask-SQLAlchemy-3.1.1 Jinja2-3.1.6 MarkupSafe-3.0.3 SQLAlchemy-2.0.46 Werkzeug-3.1.5 beautifulsoup4-4.14.3 blinker-1.9.0 certifi-2026.1.4 cffi-2.0.0 charset-normalizer-3.4.4 click-8.3.1 colorama-0.4.6 curl-cffi-0.13.0 frozendict-2.4.7 greenlet-3.3.1 gunicorn-20.1.0 idna-3.11 itsdangerous-2.2.0 llvmlite-0.44.0 multitasking-0.0.12 numba-0.61.2 numpy-2.2.6 pandas-3.0.0 pandas-ta-0.4.71b0 peewee-3.19.0 platformdirs-4.5.1 protobuf-6.33.4 pycparser-3.0 python-dateutil-2.9.0.post0 pytz-2025.2 requests-2.32.5 setuptools-80.10.1 six-1.17.0 soupsieve-2.8.3 tqdm-4.67.1 typing_extensions-4.15.0 tzdata-2025.3 urllib3-2.6.3 websockets-16.0 yfinance-1.0
+Installing collected packages: pytz, peewee, multitasking, websockets, urllib3, tzdata, typing_extensions, tqdm, soupsieve, six, setuptools, rpds-py, PyYAML, pycparser, protobuf, platformdirs, numpy, mistune, MarkupSafe, llvmlite, itsdangerous, idna, greenlet, frozendict, colorama, click, charset-normalizer, certifi, blinker, attrs, Werkzeug, SQLAlchemy, requests, referencing, python-dateutil, numba, Jinja2, gunicorn, cffi, beautifulsoup4, pandas, jsonschema-specifications, Flask, curl-cffi, yfinance, pandas-ta, jsonschema, Flask-SQLAlchemy, flasgger
+Successfully installed Flask-3.1.2 Flask-SQLAlchemy-3.1.1 Jinja2-3.1.6 MarkupSafe-3.0.3 PyYAML-6.0.3 SQLAlchemy-2.0.46 Werkzeug-3.1.5 attrs-25.4.0 beautifulsoup4-4.14.3 blinker-1.9.0 certifi-2026.1.4 cffi-2.0.0 charset-normalizer-3.4.4 click-8.3.1 colorama-0.4.6 curl-cffi-0.13.0 flasgger-0.9.5 frozendict-2.4.7 greenlet-3.3.1 gunicorn-20.1.0 idna-3.11 itsdangerous-2.2.0 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 llvmlite-0.44.0 mistune-3.2.0 multitasking-0.0.12 numba-0.61.2 numpy-2.2.6 pandas-3.0.0 pandas-ta-0.4.71b0 peewee-3.19.0 platformdirs-4.5.1 protobuf-6.33.4 pycparser-3.0 python-dateutil-2.9.0.post0 pytz-2025.2 referencing-0.37.0 requests-2.32.5 rpds-py-0.30.0 setuptools-80.10.1 six-1.17.0 soupsieve-2.8.3 tqdm-4.67.1 typing_extensions-4.15.0 tzdata-2025.3 urllib3-2.6.3 websockets-16.0 yfinance-1.0
 [notice] A new release of pip is available: 25.1.1 -> 25.3
 [notice] To update, run: pip install --upgrade pip
 ==> Uploading build...
-==> Uploaded in 14.1s. Compression took 4.0s
+==> Uploaded in 15.3s. Compression took 4.1s
 ==> Build successful 🎉
 ==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
 ==> Deploying...
+==> Running 'gunicorn app:app --workers 3 --bind 0.0.0.0:$PORT --timeout 120'
+/opt/render/project/src/.venv/lib/python3.13/site-packages/gunicorn/util.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
 ==> No open ports detected, continuing to scan...
 ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+Traceback (most recent call last):
+  File "/opt/render/project/src/.venv/bin/gunicorn", line 8, in <module>
+    sys.exit(run())
+             ~~~^^
+  File "/opt/render/project/src/.venv/lib/python3.13/site-packages/gunicorn/app/wsgiapp.py", line 67, in run
+    WSGIApplication("%(prog)s [OPTIONS] [APP_MODULE]").run()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/render/project/src/.venv/lib/python3.13/site-packages/gunicorn/app/base.py", line 231, in run
+    super().run()
+    ~~~~~~~~~~~^^
+  File "/opt/render/project/src/.venv/lib/python3.13/site-packages/gunicorn/app/base.py", line 72, in run
+    Arbiter(self).run()
+    ~~~~~~~^^^^^^
+  File "/opt/render/project/src/.venv/lib/python3.13/site-packages/gunicorn/arbiter.py", line 58, in __init__
     self.setup(app)
     ~~~~~~~~~~^^^^^
   File "/opt/render/project/src/.venv/lib/python3.13/site-packages/gunicorn/arbiter.py", line 118, in setup
@@ -47,9 +105,9 @@ Successfully installed Flask-3.1.2 Flask-SQLAlchemy-3.1.1 Jinja2-3.1.6 MarkupSaf
   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
   File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "/opt/render/project/src/app.py", line 2, in <module>
-    from flasgger import Swagger
-ModuleNotFoundError: No module named 'flasgger'
+  File "/opt/render/project/src/app.py", line 32, in <module>
+    swagger = Swagger(app)
+TypeError: 'NoneType' object is not callable
 ==> Exited with status 1
 ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
 ==> Running 'gunicorn app:app --workers 3 --bind 0.0.0.0:$PORT --timeout 120'
@@ -94,6 +152,6 @@ Traceback (most recent call last):
   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
   File "<frozen importlib._bootstrap_external>", line 1026, in exec_module
   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "/opt/render/project/src/app.py", line 2, in <module>
-    from flasgger import Swagger
-ModuleNotFoundError: No module named 'flasgger'
+  File "/opt/render/project/src/app.py", line 32, in <module>
+    swagger = Swagger(app)
+TypeError: 'NoneType' object is not callable

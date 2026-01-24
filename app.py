@@ -5,7 +5,7 @@ from finance_service import FinanceService
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///scanner.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = r'sqlite:///c:\Users\USER\Desarrollo\scanner-py\instance\scanner.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Configuración de Swagger

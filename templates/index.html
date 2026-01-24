@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -28,11 +29,12 @@
             </select>
             <button id="refreshBtn">Actualizar Precios</button>
             <button id="scanBtn" class="secondary">Escanear Indicadores</button>
+            <button id="exportBtn" style="background: #27ae60; color: white;">Exportar a Excel</button>
             <span id="loader" class="loading-spinner">Procesando...</span>
         </div>
 
         <div class="card">
-            <table>
+            <table id="mainTable">
                 <thead id="tableHead"></thead>
                 <tbody id="signalTable"></tbody>
             </table>
@@ -43,6 +45,7 @@
         const loader = document.getElementById('loader');
         const refreshBtn = document.getElementById('refreshBtn');
         const scanBtn = document.getElementById('scanBtn');
+        const exportBtn = document.getElementById('exportBtn');
         const tableBody = document.getElementById('signalTable');
         const tableHead = document.getElementById('tableHead');
         const strategySelect = document.getElementById('strategySelect');
@@ -96,17 +99,12 @@
                     </tr>
                 `;
                 data.sort((a, b) => {
-                    // 1. JERARQUÍA: AMBOS ACTIVOS PRIMERO
                     const scoreA = (a.emas_d_active ? 1 : 0) + (a.emas_w_active ? 1 : 0);
                     const scoreB = (b.emas_d_active ? 1 : 0) + (b.emas_w_active ? 1 : 0);
                     if (scoreA !== scoreB) return scoreB - scoreA;
-
-                    // 2. JERARQUÍA: SEMANAL MÁS RECIENTE
                     const wA = a.emas_w_days !== null ? a.emas_w_days : 9999;
                     const wB = b.emas_w_days !== null ? b.emas_w_days : 9999;
                     if (wA !== wB) return wA - wB;
-
-                    // 3. JERARQUÍA (DESEMPATE): DIARIO MÁS RECIENTE
                     const dA = a.emas_d_days !== null ? a.emas_d_days : 9999;
                     const dB = b.emas_d_days !== null ? b.emas_d_days : 9999;
                     return dA - dB;
@@ -117,34 +115,44 @@
                 const row = document.createElement('tr');
                 if (strategy === 'rsi_macd') {
                     let macdContent = 'No';
-                    let macdClass = 'signal-no';
-                    if (s.macd_status === 'active') { macdContent = `${s.macd_date} (${s.macd_days} d)`; macdClass = 'signal-yes'; }
-                    else if (s.macd_status === 'inactive') { macdContent = `${s.macd_date} (${s.macd_days} d)`; macdClass = 'signal-no'; }
+                    if (s.macd_status === 'active') { macdContent = `${s.macd_date} (${s.macd_days} d)`; }
+                    else if (s.macd_status === 'inactive') { macdContent = `${s.macd_date} (${s.macd_days} d)`; }
 
                     row.innerHTML = `
                         <td style="font-weight: 600">${s.symbol}</td>
-                        <td>$${s.price.toFixed(2)} <br><small style="color:var(--text-muted)">${s.price_date}</small></td>
+                        <td>$${s.price.toFixed(2)}</td>
                         <td>${s.rsi ? s.rsi.toFixed(2) : '-'}</td>
-                        <td><span class="signal ${s.days_since_rsi_30 !== null ? 'signal-yes' : 'signal-no'}">${s.days_since_rsi_30 !== null ? `Hace ${s.days_since_rsi_30} d <br>(${s.date_rsi_30})` : 'Sin Sobreventa'}</span></td>
-                        <td><span class="signal ${s.days_since_rsi_bullish !== null ? 'signal-yes' : 'signal-no'}">${s.days_since_rsi_bullish !== null ? `${s.date_rsi_bullish} (${s.days_since_rsi_bullish} d)` : (s.date_rsi_30 ? 'Pendiente' : 'N/A')}</span></td>
-                        <td><span class="signal ${macdClass}">${macdContent}</span></td>
-                        <td style="color: var(--text-muted); font-size: 0.8rem">${s.last_sync}</td>
+                        <td>${s.days_since_rsi_30 !== null ? `Hace ${s.days_since_rsi_30} d (${s.date_rsi_30})` : 'Sin Sobreventa'}</td>
+                        <td>${s.days_since_rsi_bullish !== null ? `${s.date_rsi_bullish} (${s.days_since_rsi_bullish} d)` : 'N/A'}</td>
+                        <td>${macdContent}</td>
+                        <td>${s.last_sync}</td>
                     `;
                 } else {
                     row.innerHTML = `
                         <td style="font-weight: 600">${s.symbol}</td>
-                        <td>$${s.price.toFixed(2)} <br><small style="color:var(--text-muted)">${s.price_date}</small></td>
+                        <td>$${s.price.toFixed(2)}</td>
                         <td>${s.ema4_d ? s.ema4_d.toFixed(2) : '-'}</td>
                         <td>${s.ema9_d ? s.ema9_d.toFixed(2) : '-'}</td>
                         <td>${s.ema18_d ? s.ema18_d.toFixed(2) : '-'}</td>
-                        <td><span class="signal ${s.emas_d_active ? 'signal-yes' : 'signal-no'}">${s.emas_d_date ? `${s.emas_d_date} (${s.emas_d_days} d)` : 'No'}</span></td>
-                        <td><span class="signal ${s.emas_w_active ? 'signal-yes' : 'signal-no'}">${s.emas_w_date ? `${s.emas_w_date} (${s.emas_w_days} d)` : 'No'}</span></td>
-                        <td style="color: var(--text-muted); font-size: 0.8rem">${s.last_sync}</td>
+                        <td>${s.emas_d_date ? `${s.emas_d_date} (${s.emas_d_days} d)` : 'No'}</td>
+                        <td>${s.emas_w_date ? `${s.emas_w_date} (${s.emas_w_days} d)` : 'No'}</td>
+                        <td>${s.last_sync}</td>
                     `;
                 }
                 tableBody.appendChild(row);
             });
         }
+
+        exportBtn.addEventListener('click', () => {
+            const strategyName = strategySelect.options[strategySelect.selectedIndex].text;
+            const now = new Date();
+            const timestamp = now.toLocaleDateString().replace(/\//g, '-') + '_' + now.getHours() + '-' + now.getMinutes();
+            const fileName = `${strategyName}_${timestamp}.xlsx`;
+
+            const table = document.getElementById("mainTable");
+            const workbook = XLSX.utils.table_to_book(table);
+            XLSX.writeFile(workbook, fileName);
+        });
 
         refreshBtn.addEventListener('click', async () => {
             loader.style.display = 'inline';

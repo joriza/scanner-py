@@ -100,7 +100,17 @@
                     const bothB = b.emas_d_active && b.emas_w_active;
                     if (bothA && !bothB) return -1;
                     if (!bothA && bothB) return 1;
-                    if (a.emas_w_days !== null && b.emas_w_days !== null) return a.emas_w_days - b.emas_w_days;
+
+                    // Priorizar semanal más reciente
+                    if (a.emas_w_days !== null && b.emas_w_days !== null) {
+                        if (a.emas_w_days !== b.emas_w_days) {
+                            return a.emas_w_days - b.emas_w_days;
+                        }
+                        // ANTE COINCIDENCIA EN SEMANAL: colocar primero las que se produjeron hace menos tiempo en diario
+                        if (a.emas_d_days !== null && b.emas_d_days !== null) {
+                            return a.emas_d_days - b.emas_d_days;
+                        }
+                    }
                     if (a.emas_w_days === null && b.emas_w_days !== null) return 1;
                     if (a.emas_w_days !== null && b.emas_w_days === null) return -1;
                     if (a.emas_d_days !== null && b.emas_d_days !== null) return a.emas_d_days - b.emas_d_days;

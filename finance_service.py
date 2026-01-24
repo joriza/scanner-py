@@ -167,10 +167,18 @@ class FinanceService:
                     emas_d_date = fmt_date(d_last)
                     emas_d_days = (datetime.now().date() - d_last).days
 
-            # WEEKLY
+            # Strategy 2: 3 EMAS (4, 9, 18) - WEEKLY (Resampled from Daily)
             df_w = df[['open', 'high', 'low', 'close', 'volume']].copy()
             df_w.index = pd.to_datetime(df_w.index)
-            df_w = df_w.resample('W-MON').agg({'open': 'first', 'high': 'max', 'low': 'min', 'close': 'last', 'volume': 'sum'})
+            # Resample to weekly ending on Friday
+            df_w = df_w.resample('W-FRI').agg({
+                'open': 'first',
+                'high': 'max',
+                'low': 'min',
+                'close': 'last',
+                'volume': 'sum'
+            })
+            
             df_w['EMA4_W'] = ta.ema(df_w['close'], length=4)
             df_w['EMA9_W'] = ta.ema(df_w['close'], length=9)
             df_w['EMA18_W'] = ta.ema(df_w['close'], length=18)
@@ -179,18 +187,24 @@ class FinanceService:
             emas_w_active_today = bool(df_w['emas_cond_w'].iloc[-1])
             emas_w_date = None
             emas_w_days = None
+            
+            today = datetime.now().date()
+            
             if not df_w[df_w['emas_cond_w']].empty:
                 if emas_w_active_today:
                     streak = df_w['emas_cond_w'].tolist()
                     idx = len(streak) - 1
                     while idx >= 0 and streak[idx]: idx -= 1
-                    w_start = df_w.index[idx + 1]
-                    emas_w_date = fmt_date(w_start)
-                    emas_w_days = (datetime.now().date() - w_start.date()).days
+                    w_start_dt = df_w.index[idx + 1].date()
+                    # Si el viernes de la racha aún no ha llegado, limitamos a hoy para el cálculo de días
+                    w_start_capped = min(w_start_dt, today)
+                    emas_w_date = fmt_date(w_start_capped)
+                    emas_w_days = (today - w_start_capped).days
                 else:
-                    w_last = df_w[df_w['emas_cond_w']].index[-1]
-                    emas_w_date = fmt_date(w_last)
-                    emas_w_days = (datetime.now().date() - w_last.date()).days
+                    w_last_dt = df_w[df_w['emas_cond_w']].index[-1].date()
+                    w_last_capped = min(w_last_dt, today)
+                    emas_w_date = fmt_date(w_last_capped)
+                    emas_w_days = (today - w_last_capped).days
 
             result.update({
                 'emas_d_active': emas_d_active_today,

@@ -9,5 +9,34 @@
         "ui_aesthetics": "Premium Dark Mode, Glassmorphism, dynamic table headers based on strategy_id."
     },
     "database": "SQLite (database.py). Incremental sync via FinanceService.sync_ticker_data.",
-    "api_standard": "All technical signals computed in memory via FinanceService.get_signals(ticker, strategy)."
+    "api_standard": "All technical signals computed in memory via FinanceService.get_signals(ticker, strategy).",
+    "agent_directives": {
+        "scope": "Estas directivas aplican únicamente a este repositorio (c:\\Users\\USER\\Desarrollo\\scanner-py) y al agente que automatiza tareas aquí.",
+        "branch_flow": {
+            "publish_on_create": "Al crear una rama local se debe publicar inmediatamente en GitHub y configurar upstream.",
+            "example": [
+                "git checkout -b nombre-rama",
+                "git push -u origin nombre-rama"
+            ]
+        },
+        "commits_and_push": {
+            "message_language": "es",
+            "message_format": "Asunto en presente indicativo (<=72 chars). Cuerpo opcional separado por línea en blanco.",
+            "example": "Corregir validación en POST /api/tickers\\n\\nSe añade comprobación de request.json y mensaje de error claro cuando falta 'symbol'.",
+            "push_after_commit": "Después de cada commit relevante, realizar git push a la rama remota."
+        },
+        "pull_requests": {
+            "language": "es",
+            "requirements": "Título y descripción en español; referenciar issue/objetivo; listar cambios principales."
+        },
+        "operations_network": {
+            "check_upstream": "Antes de push, verificar upstream y manejo de credenciales.",
+            "log_push": "Registrar en logs la operación de push con resultado (éxito/fallo)."
+        },
+        "pre_commit_checks": {
+            "run_hooks": "Ejecutar hooks pre-commit (linters/formatters) si están configurados.",
+            "recommendation": "Si no existen hooks, documentar recomendación en CONTRIBUTING.md."
+        },
+        "exceptions": "Si una rama es experimental y no debe publicarse, documentarlo explícitamente y solicitar aprobación."
+    }
 }

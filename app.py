@@ -1,4 +1,5 @@
 from flask import Flask, render_template, jsonify, request
+from flasgger import Swagger
 from database import db, init_db, Ticker, Price
 from finance_service import FinanceService
 import os
@@ -7,10 +8,23 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///scanner.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Configuración de Swagger
+app.config['SWAGGER'] = {
+    'title': 'Scanner Pro API',
+    'uiversion': 3
+}
+swagger = Swagger(app)
+
 init_db(app)
 
 @app.route('/')
 def index():
+    """Página principal
+    ---
+    responses:
+      200:
+        description: Renderiza la página principal
+    """
     return render_template('index.html')
 
 @app.route('/admin')
@@ -19,6 +33,44 @@ def admin():
 
 @app.route('/api/tickers', methods=['GET', 'POST'])
 def handle_tickers():
+    """Gestión de tickers
+    ---
+    get:
+      description: Obtiene todos los tickers
+      responses:
+        200:
+          description: Lista de tickers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    symbol:
+                      type: string
+                    last_sync:
+                      type: string
+    post:
+      description: Agrega un nuevo ticker
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                symbol:
+                  type: string
+                  example: TSLA
+      responses:
+        200:
+          description: Ticker agregado exitosamente
+        400:
+          description: Error en la solicitud
+    """
     if request.method == 'POST':
         data = request.json
         symbol = data.get('symbol').upper().strip()

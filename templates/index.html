@@ -115,16 +115,30 @@
                 const row = document.createElement('tr');
                 if (strategy === 'rsi_macd') {
                     let macdContent = 'No';
-                    if (s.macd_status === 'active') { macdContent = `${s.macd_date} (${s.macd_days} d)`; }
-                    else if (s.macd_status === 'inactive') { macdContent = `${s.macd_date} (${s.macd_days} d)`; }
+                    let macdClass = 'signal-no';
+                    if (s.macd_status === 'active') {
+                        macdContent = `${s.macd_date} (${s.macd_days} d)`;
+                        macdClass = 'signal-yes';
+                    } else if (s.macd_status === 'inactive') {
+                        macdContent = `${s.macd_date} (${s.macd_days} d)`;
+                        macdClass = 'signal-no';
+                    }
 
                     row.innerHTML = `
                         <td style="font-weight: 600">${s.symbol}</td>
                         <td>$${s.price.toFixed(2)}</td>
                         <td>${s.rsi ? s.rsi.toFixed(2) : '-'}</td>
-                        <td>${s.days_since_rsi_30 !== null ? `Hace ${s.days_since_rsi_30} d (${s.date_rsi_30})` : 'Sin Sobreventa'}</td>
-                        <td>${s.days_since_rsi_bullish !== null ? `${s.date_rsi_bullish} (${s.days_since_rsi_bullish} d)` : 'N/A'}</td>
-                        <td>${macdContent}</td>
+                        <td>
+                            <span class="signal ${s.days_since_rsi_30 !== null ? 'signal-yes' : 'signal-no'}">
+                                ${s.days_since_rsi_30 !== null ? `Hace ${s.days_since_rsi_30} d (${s.date_rsi_30})` : 'Sin Sobreventa'}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="signal ${s.days_since_rsi_bullish !== null ? 'signal-yes' : 'signal-no'}">
+                                ${s.days_since_rsi_bullish !== null ? `${s.date_rsi_bullish} (${s.days_since_rsi_bullish} d)` : 'N/A'}
+                            </span>
+                        </td>
+                        <td><span class="signal ${macdClass}">${macdContent}</span></td>
                         <td>${s.last_sync}</td>
                     `;
                 } else {
@@ -134,8 +148,16 @@
                         <td>${s.ema4_d ? s.ema4_d.toFixed(2) : '-'}</td>
                         <td>${s.ema9_d ? s.ema9_d.toFixed(2) : '-'}</td>
                         <td>${s.ema18_d ? s.ema18_d.toFixed(2) : '-'}</td>
-                        <td>${s.emas_d_date ? `${s.emas_d_date} (${s.emas_d_days} d)` : 'No'}</td>
-                        <td>${s.emas_w_date ? `${s.emas_w_date} (${s.emas_w_days} d)` : 'No'}</td>
+                        <td>
+                            <span class="signal ${s.emas_d_active ? 'signal-yes' : 'signal-no'}">
+                                ${s.emas_d_date ? `${s.emas_d_date} (${s.emas_d_days} d)` : 'No'}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="signal ${s.emas_w_active ? 'signal-yes' : 'signal-no'}">
+                                ${s.emas_w_date ? `${s.emas_w_date} (${s.emas_w_days} d)` : 'No'}
+                            </span>
+                        </td>
                         <td>${s.last_sync}</td>
                     `;
                 }

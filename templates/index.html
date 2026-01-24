@@ -35,8 +35,7 @@
                         <th>RSI(14)</th>
                         <th>RSI < 30 (1 año)</th>
                         <th>Tendencia RSI</th>
-                        <th>MACD Inicio (30d)</th>
-                        <th>MACD Hoy</th>
+                        <th>MACD Opp (30d)</th>
                         <th>Ult. Sync</th>
                     </tr>
                 </thead>
@@ -70,6 +69,18 @@
             tableBody.innerHTML = '';
             data.forEach(s => {
                 const row = document.createElement('tr');
+
+                // MACD Cell logic
+                let macdContent = 'No';
+                let macdClass = 'signal-no';
+                if (s.macd_status === 'active') {
+                    macdContent = `${s.macd_date} (${s.macd_days} d)`;
+                    macdClass = 'signal-yes';
+                } else if (s.macd_status === 'inactive') {
+                    macdContent = `${s.macd_date} (${s.macd_days} d)`;
+                    macdClass = 'signal-no'; // Red
+                }
+
                 row.innerHTML = `
                     <td style="font-weight: 600">${s.symbol}</td>
                     <td>$${s.price.toFixed(2)} <br><small style="color:var(--text-muted)">${s.price_date}</small></td>
@@ -81,17 +92,12 @@
                     </td>
                     <td>
                         <span class="signal ${s.days_since_rsi_bullish !== null ? 'signal-yes' : 'signal-no'}">
-                            ${s.days_since_rsi_bullish !== null ? `Alcista (${s.days_since_rsi_bullish} d)<br>(${s.date_rsi_bullish})` : (s.date_rsi_30 ? 'Pendiente' : 'N/A')}
+                            ${s.days_since_rsi_bullish !== null ? `${s.date_rsi_bullish} (${s.days_since_rsi_bullish} d)` : (s.date_rsi_30 ? 'Pendiente' : 'N/A')}
                         </span>
                     </td>
                     <td>
-                        <span class="signal ${s.macd_first_date !== null ? 'signal-yes' : 'signal-no'}">
-                            ${s.macd_first_date !== null ? s.macd_first_date : 'No'}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="signal ${s.macd_is_active ? 'signal-yes' : 'signal-no'}">
-                            ${s.macd_is_active ? 'Activo' : 'No'}
+                        <span class="signal ${macdClass}">
+                            ${macdContent}
                         </span>
                     </td>
                     <td style="color: var(--text-muted); font-size: 0.8rem">${s.last_sync}</td>

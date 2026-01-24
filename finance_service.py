@@ -85,6 +85,9 @@ class FinanceService:
         macd = ta.macd(df['close'])
         df = pd.concat([df, macd], axis=1)
         
+        # Date Format Helper
+        fmt_date = lambda d: d.strftime('%y-%m-%d') if d else None
+
         # Signal 1: RSI < 30 in last 365 days
         one_year_ago = datetime.now().date() - timedelta(days=365)
         last_year_df = df[df.index >= one_year_ago].copy()
@@ -97,52 +100,63 @@ class FinanceService:
             last_date = rsi_under_30.index[-1]
             date_obj_rsi_30 = last_date
             days_since_rsi_30 = (datetime.now().date() - last_date).days
-            date_rsi_30 = last_date.strftime('%Y-%m-%d')
+            date_rsi_30 = fmt_date(last_date)
             
         # Signal 2: RSI > RSI_SMA (Bullish trend of RSI)
-        # Requirement: Earliest date fulfilling RSI > RSI_SMA, but AFTER the last date where RSI was < 30
         days_since_rsi_bullish = None
         date_rsi_bullish = None
         
         if date_obj_rsi_30:
-            # Look for RSI > SMA specifically after the oversold event
             post_oversold_df = last_year_df[last_year_df.index > date_obj_rsi_30]
             rsi_bullish_after = post_oversold_df[post_oversold_df['RSI'] > post_oversold_df['RSI_SMA']]
             
             if not rsi_bullish_after.empty:
-                # Get the EARLIEST (farther in the past) date fulfilling the condition after the RSI < 30
                 first_date_after = rsi_bullish_after.index[0]
                 days_since_rsi_bullish = (datetime.now().date() - first_date_after).days
-                date_rsi_bullish = first_date_after.strftime('%Y-%m-%d')
+                date_rsi_bullish = fmt_date(first_date_after)
 
-        # Signal 3: MACD Opportunity: MACD > Signal and MACD <= 0 in last 30 days
+        # Signal 3: Unified MACD Opportunity
         macd_col = 'MACD_12_26_9'
         signal_col = 'MACDs_12_26_9'
         
         thirty_days_ago = datetime.now().date() - timedelta(days=30)
         last_30_df = df[df.index >= thirty_days_ago].copy()
-        
         last_30_df['cond'] = (last_30_df[macd_col] > last_30_df[signal_col]) & (last_30_df[macd_col] <= 0)
         
-        macd_opps = last_30_df[last_30_df['cond']]
+        macd_status = 'none'
+        macd_date = None
+        macd_days = None
         
-        macd_first_date = None
-        macd_is_active = False
-        
-        if not macd_opps.empty:
-            macd_first_date = macd_opps.index[0].strftime('%Y-%m-%d')
-            macd_is_active = bool(last_30_df['cond'].iloc[-1])
+        if not last_30_df.empty:
+            is_active_today = last_30_df['cond'].iloc[-1]
+            if is_active_today:
+                # Find the START of the current active streak
+                active_dates = last_30_df[last_30_df['cond']].index
+                # Simplificamos tomando el primer día que cumplió la condición en esta ventana
+                start_date = active_dates[0] 
+                macd_status = 'active'
+                macd_date = fmt_date(start_date)
+                macd_days = (datetime.now().date() - start_date).days
+            else:
+                # Find the LAST date it was active
+                past_active = last_30_df[last_30_df['cond']]
+                if not past_active.empty:
+                    last_active_date = past_active.index[-1]
+                    macd_status = 'inactive'
+                    macd_date = fmt_date(last_active_date)
+                    macd_days = (datetime.now().date() - last_active_date).days
 
         return {
             'symbol': ticker_obj.symbol,
             'price': float(df['close'].iloc[-1]),
-            'price_date': df.index[-1].strftime('%Y-%m-%d'),
+            'price_date': fmt_date(df.index[-1]),
             'rsi': float(df['RSI'].iloc[-1]) if not pd.isna(df['RSI'].iloc[-1]) else None,
             'days_since_rsi_30': days_since_rsi_30,
             'date_rsi_30': date_rsi_30,
             'days_since_rsi_bullish': days_since_rsi_bullish,
             'date_rsi_bullish': date_rsi_bullish,
-            'macd_first_date': macd_first_date,
-            'macd_is_active': macd_is_active,
-            'last_sync': ticker_obj.last_sync.strftime('%Y-%m-%d %H:%M') if ticker_obj.last_sync else 'Never'
+            'macd_status': macd_status,
+            'macd_date': macd_date,
+            'macd_days': macd_days,
+            'last_sync': ticker_obj.last_sync.strftime('%y-%m-%d %H:%M') if ticker_obj.last_sync else 'Never'
         }

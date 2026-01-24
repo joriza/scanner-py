@@ -115,12 +115,14 @@ class FinanceService:
                 days_since_rsi_bullish = (datetime.now().date() - first_date_after).days
                 date_rsi_bullish = fmt_date(first_date_after)
 
-        # Signal 3: Unified MACD Opportunity
+        # Signal 3: Unified MACD Opportunity (12, 26, 9)
         macd_col = 'MACD_12_26_9'
         signal_col = 'MACDs_12_26_9'
         
         thirty_days_ago = datetime.now().date() - timedelta(days=30)
         last_30_df = df[df.index >= thirty_days_ago].copy()
+        
+        # Condition: MACD > Signal AND MACD <= 0
         last_30_df['cond'] = (last_30_df[macd_col] > last_30_df[signal_col]) & (last_30_df[macd_col] <= 0)
         
         macd_status = 'none'
@@ -129,22 +131,31 @@ class FinanceService:
         
         if not last_30_df.empty:
             is_active_today = last_30_df['cond'].iloc[-1]
+            
+            # Find all dates where condition was MET in the last 30 days
+            active_dates = last_30_df[last_30_df['cond']].index
+            
             if is_active_today:
-                # Find the START of the current active streak
-                active_dates = last_30_df[last_30_df['cond']].index
-                # Simplificamos tomando el primer día que cumplió la condición en esta ventana
-                start_date = active_dates[0] 
+                # ACTIVE (Green): Days since it started
+                # Find the first date of the current continuous streak
+                current_streak = last_30_df['cond'].tolist()
+                start_idx = len(current_streak) - 1
+                while start_idx >= 0 and current_streak[start_idx]:
+                    start_idx -= 1
+                
+                start_date = last_30_df.index[start_idx + 1]
                 macd_status = 'active'
                 macd_date = fmt_date(start_date)
                 macd_days = (datetime.now().date() - start_date).days
-            else:
-                # Find the LAST date it was active
-                past_active = last_30_df[last_30_df['cond']]
-                if not past_active.empty:
-                    last_active_date = past_active.index[-1]
-                    macd_status = 'inactive'
-                    macd_date = fmt_date(last_active_date)
-                    macd_days = (datetime.now().date() - last_active_date).days
+            elif not active_dates.empty:
+                # INACTIVE (Red): Days since it was last MET
+                last_active_date = active_dates[-1]
+                
+                # The "exit" date is the day after the last active date
+                # but to avoid complexity we show the last active date
+                macd_status = 'inactive'
+                macd_date = fmt_date(last_active_date)
+                macd_days = (datetime.now().date() - last_active_date).days
 
         return {
             'symbol': ticker_obj.symbol,

@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import os
 
 db = SQLAlchemy()
 
@@ -25,5 +26,14 @@ class Price(db.Model):
 
 def init_db(app):
     db.init_app(app)
+
+    # Ensure directory exists for relative sqlite DB URIs like 'sqlite:///instance/scanner.db'
+    db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+    if db_uri and db_uri.startswith('sqlite:///'):
+        db_path = db_uri.replace('sqlite:///', '')
+        db_dir = os.path.dirname(db_path)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+
     with app.app_context():
         db.create_all()

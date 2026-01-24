@@ -5,7 +5,10 @@ from finance_service import FinanceService
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = r'sqlite:///c:\Users\USER\Desarrollo\scanner-py\instance\scanner.db'
+# Use DATABASE_URL env var if provided (for deployment platforms like Render).
+# Fallback to relative sqlite path for local development.
+db_path = os.environ.get('DATABASE_URL', 'sqlite:///instance/scanner.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Configuración de Swagger
@@ -134,4 +137,7 @@ def scan_tickers():
     return jsonify(signals)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    host = os.environ.get('HOST', '0.0.0.0')
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(debug=debug, host=host, port=port)

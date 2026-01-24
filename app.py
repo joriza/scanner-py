@@ -72,10 +72,11 @@ def refresh_data():
 
 @app.route('/api/scan', methods=['GET'])
 def scan_tickers():
+    strategy = request.args.get('strategy', 'rsi_macd')
     tickers = Ticker.query.all()
     signals = []
     for t in tickers:
-        signal = FinanceService.get_signals(t)
+        signal = FinanceService.get_signals(t, strategy=strategy)
         if signal:
             signals.append(signal)
     return jsonify(signals)

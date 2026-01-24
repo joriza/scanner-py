@@ -34,17 +34,24 @@ La aplicación funciona mediante un **backend en Flask (Python)** y una **interf
 ## 3. Lógica de Indicadores (Etapa 1 - Diaria)
 Los indicadores se calculan "en memoria" al momento de abrir el Dashboard para asegurar flexibilidad.
 
-### Reglas Implementadas:
-1.  **RSI Sobrevendido (< 30)**:
-    *   Revisa el RSI de 14 períodos (basado en precio de cierre) en el histórico de los últimos 365 días.
-    *   Muestra la fecha exacta y hace cuántos días ocurrió el último evento de sobreventa. Si no hubo en el año, muestra "Sin Sobreventa".
-2.  **Tendencia RSI (Rebote Alcista)**:
-    *   Busca la **primera fecha (más lejana)** posterior a la última sobreventa donde el RSI cruzó por encima de su media móvil (SMA 14).
-    *   Esto permite identificar el inicio del cambio de tendencia tras un piso.
-3.  **Oportunidad MACD (Columna Unificada)**:
-    *   **Parámetros**: Período rápido 12, lento 26, señal 9 (Configuración estándar).
-    *   **Lógica**: Muestra la fecha de inicio del cruce positivo (`MACD > Signal`) ocurrido bajo cero en los últimos 30 días.
-    *   **Estado Visual**: Color verde si sigue activo, color rojo si dejó de cumplirse (mostrando la fecha de salida).
+### Estrategias Implementadas:
+
+#### 1-RSI+MACD
+1.  **RSI < 30 (1 año)**: Fecha y días desde la última sobreventa severa.
+2.  **Tendencia RSI (Rebote)**: Primer cruce alcista de RSI sobre su SMA post-sobreventa.
+3.  **Oportunidad MACD**: Cruce alcista bajo cero (12, 26, 9).
+
+#### 2-3_EMAS
+1.  **Precio > 3 EMAS**: Detecta cuando el **Precio de Cierre** se posiciona simultáneamente por encima de las Medias Móviles Exponenciales (EMA) de **5, 9 y 20 períodos**.
+2.  **Visualización**: Muestra la fecha en que se produjo la condición por última vez y hace cuántos días. Si el precio sigue por encima hoy, la señal aparece en **Verde**, de lo contrario en **Rojo**.
+
+---
+
+## 4. Selección de Estrategias
+El Dashboard incluye un selector que permite cambiar entre estrategias. Al cambiar la opción:
+*   La tabla se actualiza dinámicamente.
+*   Los encabezados cambian para reflejar los indicadores pertinentes.
+*   El ordenamiento se ajusta automáticamente (los eventos más recientes de cada estrategia aparecen primero).
 
 ---
 

@@ -62,7 +62,7 @@ class FinanceService:
         return count
 
     @staticmethod
-    def get_signals(ticker_obj):
+    def get_signals(ticker_obj, strategy='rsi_macd'):
         # Load prices from DB
         prices = Price.query.filter_by(ticker_id=ticker_obj.id).order_by(Price.date.asc()).all()
         if not prices or len(prices) < 30:
@@ -78,96 +78,121 @@ class FinanceService:
         } for p in prices])
         
         df.set_index('date', inplace=True)
-        
-        # Indicators
-        df['RSI'] = ta.rsi(df['close'], length=14)
-        df['RSI_SMA'] = ta.sma(df['RSI'], length=14)
-        macd = ta.macd(df['close'])
-        df = pd.concat([df, macd], axis=1)
-        
-        # Date Format Helper
         fmt_date = lambda d: d.strftime('%y-%m-%d') if d else None
-
-        # Signal 1: RSI < 30 in last 365 days
-        one_year_ago = datetime.now().date() - timedelta(days=365)
-        last_year_df = df[df.index >= one_year_ago].copy()
-        rsi_under_30 = last_year_df[last_year_df['RSI'] < 30]
         
-        days_since_rsi_30 = None
-        date_rsi_30 = None
-        date_obj_rsi_30 = None
-        if not rsi_under_30.empty:
-            last_date = rsi_under_30.index[-1]
-            date_obj_rsi_30 = last_date
-            days_since_rsi_30 = (datetime.now().date() - last_date).days
-            date_rsi_30 = fmt_date(last_date)
-            
-        # Signal 2: RSI > RSI_SMA (Bullish trend of RSI)
-        days_since_rsi_bullish = None
-        date_rsi_bullish = None
-        
-        if date_obj_rsi_30:
-            post_oversold_df = last_year_df[last_year_df.index > date_obj_rsi_30]
-            rsi_bullish_after = post_oversold_df[post_oversold_df['RSI'] > post_oversold_df['RSI_SMA']]
-            
-            if not rsi_bullish_after.empty:
-                first_date_after = rsi_bullish_after.index[0]
-                days_since_rsi_bullish = (datetime.now().date() - first_date_after).days
-                date_rsi_bullish = fmt_date(first_date_after)
-
-        # Signal 3: Unified MACD Opportunity (12, 26, 9)
-        macd_col = 'MACD_12_26_9'
-        signal_col = 'MACDs_12_26_9'
-        
-        thirty_days_ago = datetime.now().date() - timedelta(days=30)
-        last_30_df = df[df.index >= thirty_days_ago].copy()
-        
-        # Condition: MACD > Signal AND MACD <= 0
-        last_30_df['cond'] = (last_30_df[macd_col] > last_30_df[signal_col]) & (last_30_df[macd_col] <= 0)
-        
-        macd_status = 'none'
-        macd_date = None
-        macd_days = None
-        
-        if not last_30_df.empty:
-            is_active_today = last_30_df['cond'].iloc[-1]
-            
-            # Find all dates where condition was MET in the last 30 days
-            active_dates = last_30_df[last_30_df['cond']].index
-            
-            if is_active_today:
-                # ACTIVE (Green): Days since it started
-                # Find the first date of the current continuous streak
-                current_streak = last_30_df['cond'].tolist()
-                start_idx = len(current_streak) - 1
-                while start_idx >= 0 and current_streak[start_idx]:
-                    start_idx -= 1
-                
-                start_date = last_30_df.index[start_idx + 1]
-                macd_status = 'active'
-                macd_date = fmt_date(start_date)
-                macd_days = (datetime.now().date() - start_date).days
-            elif not active_dates.empty:
-                # INACTIVE (Red): Days since it was last MET
-                last_active_date = active_dates[-1]
-                
-                # The "exit" date is the day after the last active date
-                # but to avoid complexity we show the last active date
-                macd_status = 'inactive'
-                macd_date = fmt_date(last_active_date)
-                macd_days = (datetime.now().date() - last_active_date).days
-
-        return {
+        result = {
             'symbol': ticker_obj.symbol,
             'price': float(df['close'].iloc[-1]),
             'price_date': fmt_date(df.index[-1]),
-            'rsi': float(df['RSI'].iloc[-1]) if not pd.isna(df['RSI'].iloc[-1]) else None,
-            'days_since_rsi_30': days_since_rsi_30,
-            'date_rsi_30': date_rsi_30,
-            'days_since_rsi_bullish': days_since_rsi_bullish,
-            'date_rsi_bullish': date_rsi_bullish,
-            'macd_status': macd_status,
-            'macd_date': macd_date,
-            'macd_days': macd_days,
             'last_sync': ticker_obj.last_sync.strftime('%y-%m-%d %H:%M') if ticker_obj.last_sync else 'Never'
         }
+
+        if strategy == 'rsi_macd':
+            # Indicators
+            df['RSI'] = ta.rsi(df['close'], length=14)
+            df['RSI_SMA'] = ta.sma(df['RSI'], length=14)
+            macd = ta.macd(df['close'])
+            df = pd.concat([df, macd], axis=1)
+            
+            # Signal 1: RSI < 30 in last 365 days
+            one_year_ago = datetime.now().date() - timedelta(days=365)
+            last_year_df = df[df.index >= one_year_ago].copy()
+            rsi_under_30 = last_year_df[last_year_df['RSI'] < 30]
+            
+            days_since_rsi_30 = None
+            date_rsi_30 = None
+            date_obj_rsi_30 = None
+            if not rsi_under_30.empty:
+                last_date = rsi_under_30.index[-1]
+                date_obj_rsi_30 = last_date
+                days_since_rsi_30 = (datetime.now().date() - last_date).days
+                date_rsi_30 = fmt_date(last_date)
+                
+            # Signal 2: RSI > RSI_SMA posts-oversold
+            days_since_rsi_bullish = None
+            date_rsi_bullish = None
+            if date_obj_rsi_30:
+                post_oversold_df = last_year_df[last_year_df.index > date_obj_rsi_30]
+                rsi_bullish_after = post_oversold_df[post_oversold_df['RSI'] > post_oversold_df['RSI_SMA']]
+                if not rsi_bullish_after.empty:
+                    first_date_after = rsi_bullish_after.index[0]
+                    days_since_rsi_bullish = (datetime.now().date() - first_date_after).days
+                    date_rsi_bullish = fmt_date(first_date_after)
+
+            # Signal 3: Unified MACD Opportunity (12, 26, 9)
+            macd_col = 'MACD_12_26_9'
+            signal_col = 'MACDs_12_26_9'
+            thirty_days_ago = datetime.now().date() - timedelta(days=30)
+            last_30_df = df[df.index >= thirty_days_ago].copy()
+            last_30_df['cond'] = (last_30_df[macd_col] > last_30_df[signal_col]) & (last_30_df[macd_col] <= 0)
+            
+            macd_status = 'none'
+            macd_date = None
+            macd_days = None
+            if not last_30_df.empty:
+                is_active_today = last_30_df['cond'].iloc[-1]
+                active_dates = last_30_df[last_30_df['cond']].index
+                if is_active_today:
+                    current_streak = last_30_df['cond'].tolist()
+                    start_idx = len(current_streak) - 1
+                    while start_idx >= 0 and current_streak[start_idx]: start_idx -= 1
+                    start_date = last_30_df.index[start_idx + 1]
+                    macd_status = 'active'; macd_date = fmt_date(start_date)
+                    macd_days = (datetime.now().date() - start_date).days
+                elif not active_dates.empty:
+                    last_active_date = active_dates[-1]
+                    macd_status = 'inactive'; macd_date = fmt_date(last_active_date)
+                    macd_days = (datetime.now().date() - last_active_date).days
+
+            result.update({
+                'rsi': float(df['RSI'].iloc[-1]) if not pd.isna(df['RSI'].iloc[-1]) else None,
+                'days_since_rsi_30': days_since_rsi_30,
+                'date_rsi_30': date_rsi_30,
+                'days_since_rsi_bullish': days_since_rsi_bullish,
+                'date_rsi_bullish': date_rsi_bullish,
+                'macd_status': macd_status,
+                'macd_date': macd_date,
+                'macd_days': macd_days
+            })
+
+        elif strategy == '3_emas':
+            # Strategy 2: 3 EMAS (5, 9, 20)
+            df['EMA5'] = ta.ema(df['close'], length=5)
+            df['EMA9'] = ta.ema(df['close'], length=9)
+            df['EMA20'] = ta.ema(df['close'], length=20)
+            
+            # Condition: Price > EMA5 AND Price > EMA9 AND Price > EMA20
+            df['emas_cond'] = (df['close'] > df['EMA5']) & (df['close'] > df['EMA9']) & (df['close'] > df['EMA20'])
+            
+            # Find the most recent event where condition became true or is true
+            emas_active = df[df['emas_cond']]
+            
+            emas_date = None
+            emas_days = None
+            emas_active_today = False
+
+            if not emas_active.empty:
+                emas_active_today = bool(df['emas_cond'].iloc[-1])
+                # Para la vez más reciente: buscar el inicio de la racha actual o la última racha
+                if emas_active_today:
+                    streak = df['emas_cond'].tolist()
+                    idx = len(streak) - 1
+                    while idx >= 0 and streak[idx]: idx -= 1
+                    last_start_date = df.index[idx + 1]
+                    emas_date = fmt_date(last_start_date)
+                    emas_days = (datetime.now().date() - last_start_date).days
+                else:
+                    last_date = emas_active.index[-1]
+                    emas_date = fmt_date(last_date)
+                    emas_days = (datetime.now().date() - last_date).days
+
+            result.update({
+                'emas_active': emas_active_today,
+                'emas_date': emas_date,
+                'emas_days': emas_days,
+                'ema5': float(df['EMA5'].iloc[-1]) if not pd.isna(df['EMA5'].iloc[-1]) else None,
+                'ema9': float(df['EMA9'].iloc[-1]) if not pd.isna(df['EMA9'].iloc[-1]) else None,
+                'ema20': float(df['EMA20'].iloc[-1]) if not pd.isna(df['EMA20'].iloc[-1]) else None
+            })
+
+        return result

@@ -66,6 +66,18 @@
         }
 
         function renderTable(data) {
+            // Ordenar: días desde tendencia RSI (s.days_since_rsi_bullish) de menor a mayor (más cercano primero). 
+            // Los que no tienen fecha (null) van al final.
+            data.sort((a, b) => {
+                const valA = a.days_since_rsi_bullish;
+                const valB = b.days_since_rsi_bullish;
+
+                if (valA === null && valB === null) return 0;
+                if (valA === null) return 1;
+                if (valB === null) return -1;
+                return valA - valB;
+            });
+
             tableBody.innerHTML = '';
             data.forEach(s => {
                 const row = document.createElement('tr');

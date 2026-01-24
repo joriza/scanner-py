@@ -24,7 +24,7 @@
             <select id="strategySelect"
                 style="background: var(--card-bg); color: var(--text-main); border: 1px solid var(--accent); padding: 0.75rem; border-radius: 0.5rem; cursor: pointer;">
                 <option value="rsi_macd">Estrategia 1: RSI + MACD</option>
-                <option value="3_emas">Estrategia 2: 3 EMAS (4, 9, 18)</option>
+                <option value="3_emas">Estrategia 2: 3 EMAS (Diaria + Semanal)</option>
             </select>
             <button id="refreshBtn">Actualizar Precios</button>
             <button id="scanBtn" class="secondary">Escanear Indicadores</button>
@@ -90,18 +90,34 @@
                     <tr>
                         <th>Símbolo</th>
                         <th>Precio</th>
-                        <th>EMA 4</th>
-                        <th>EMA 9</th>
-                        <th>EMA 18</th>
-                        <th>Precio > 3 EMAS</th>
+                        <th>EMA 4(D)</th>
+                        <th>EMA 9(D)</th>
+                        <th>EMA 18(D)</th>
+                        <th>3 EMAS Diaria</th>
+                        <th>3 EMAS Semanal</th>
                         <th>Ult. Sync</th>
                     </tr>
                 `;
+
                 data.sort((a, b) => {
-                    if (a.emas_days === null && b.emas_days === null) return 0;
-                    if (a.emas_days === null) return 1;
-                    if (b.emas_days === null) return -1;
-                    return a.emas_days - b.emas_days;
+                    const bothA = a.emas_d_active && a.emas_w_active;
+                    const bothB = b.emas_d_active && b.emas_w_active;
+
+                    if (bothA && !bothB) return -1;
+                    if (!bothA && bothB) return 1;
+
+                    // Si ambos cumplen ambas (o ninguno), priorizamos semanal más reciente
+                    if (a.emas_w_days !== null && b.emas_w_days !== null) {
+                        return a.emas_w_days - b.emas_w_days;
+                    }
+                    if (a.emas_w_days === null && b.emas_w_days !== null) return 1;
+                    if (a.emas_w_days !== null && b.emas_w_days === null) return -1;
+
+                    // De lo contrario, por diario
+                    if (a.emas_d_days !== null && b.emas_d_days !== null) {
+                        return a.emas_d_days - b.emas_d_days;
+                    }
+                    return 0;
                 });
             }
 
@@ -141,12 +157,17 @@
                     row.innerHTML = `
                         <td style="font-weight: 600">${s.symbol}</td>
                         <td>$${s.price.toFixed(2)} <br><small style="color:var(--text-muted)">${s.price_date}</small></td>
-                        <td>${s.ema4 ? s.ema4.toFixed(2) : '-'}</td>
-                        <td>${s.ema9 ? s.ema9.toFixed(2) : '-'}</td>
-                        <td>${s.ema18 ? s.ema18.toFixed(2) : '-'}</td>
+                        <td>${s.ema4_d ? s.ema4_d.toFixed(2) : '-'}</td>
+                        <td>${s.ema9_d ? s.ema9_d.toFixed(2) : '-'}</td>
+                        <td>${s.ema18_d ? s.ema18_d.toFixed(2) : '-'}</td>
                         <td>
-                            <span class="signal ${s.emas_active ? 'signal-yes' : 'signal-no'}">
-                                ${s.emas_date ? `${s.emas_date} (${s.emas_days} d)` : 'No'}
+                            <span class="signal ${s.emas_d_active ? 'signal-yes' : 'signal-no'}">
+                                ${s.emas_d_date ? `${s.emas_d_date} (${s.emas_d_days} d)` : 'No'}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="signal ${s.emas_w_active ? 'signal-yes' : 'signal-no'}">
+                                ${s.emas_w_date ? `${s.emas_w_date} (${s.emas_w_days} d)` : 'No'}
                             </span>
                         </td>
                         <td style="color: var(--text-muted); font-size: 0.8rem">${s.last_sync}</td>

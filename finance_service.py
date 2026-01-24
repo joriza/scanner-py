@@ -156,42 +156,67 @@ class FinanceService:
             })
 
         elif strategy == '3_emas':
-            # Strategy 2: 3 EMAS (4, 9, 18)
-            df['EMA4'] = ta.ema(df['close'], length=4)
-            df['EMA9'] = ta.ema(df['close'], length=9)
-            df['EMA18'] = ta.ema(df['close'], length=18)
+            # Strategy 2: 3 EMAS (4, 9, 18) - DAILY
+            df['EMA4_D'] = ta.ema(df['close'], length=4)
+            df['EMA9_D'] = ta.ema(df['close'], length=9)
+            df['EMA18_D'] = ta.ema(df['close'], length=18)
+            df['emas_cond_d'] = (df['close'] > df['EMA4_D']) & (df['close'] > df['EMA9_D']) & (df['close'] > df['EMA18_D'])
             
-            # Condition: Price > EMA4 AND Price > EMA9 AND Price > EMA18
-            df['emas_cond'] = (df['close'] > df['EMA4']) & (df['close'] > df['EMA9']) & (df['close'] > df['EMA18'])
-            
-            # Find the most recent event where condition became true or is true
-            emas_active = df[df['emas_cond']]
-            
-            emas_date = None
-            emas_days = None
-            emas_active_today = False
-
-            if not emas_active.empty:
-                emas_active_today = bool(df['emas_cond'].iloc[-1])
-                if emas_active_today:
-                    streak = df['emas_cond'].tolist()
+            emas_d_active_today = bool(df['emas_cond_d'].iloc[-1])
+            emas_d_date = None
+            emas_d_days = None
+            if not df[df['emas_cond_d']].empty:
+                if emas_d_active_today:
+                    streak = df['emas_cond_d'].tolist()
                     idx = len(streak) - 1
                     while idx >= 0 and streak[idx]: idx -= 1
-                    last_start_date = df.index[idx + 1]
-                    emas_date = fmt_date(last_start_date)
-                    emas_days = (datetime.now().date() - last_start_date).days
+                    d_start = df.index[idx + 1]
+                    emas_d_date = fmt_date(d_start); emas_d_days = (datetime.now().date() - d_start).days
                 else:
-                    last_date = emas_active.index[-1]
-                    emas_date = fmt_date(last_date)
-                    emas_days = (datetime.now().date() - last_date).days
+                    d_last = df[df['emas_cond_d']].index[-1]
+                    emas_d_date = fmt_date(d_last); emas_d_days = (datetime.now().date() - d_last).days
+
+            # Strategy 2: 3 EMAS (4, 9, 18) - WEEKLY (Resampled from Daily)
+            # We need to resample the original OHLCV data
+            df_w = df[['open', 'high', 'low', 'close', 'volume']].copy()
+            # Resample to weekly (W-MON means week starts on Monday)
+            df_w = df_w.resample('W-MON').agg({
+                'open': 'first',
+                'high': 'max',
+                'low': 'min',
+                'close': 'last',
+                'volume': 'sum'
+            })
+            
+            df_w['EMA4_W'] = ta.ema(df_w['close'], length=4)
+            df_w['EMA9_W'] = ta.ema(df_w['close'], length=9)
+            df_w['EMA18_W'] = ta.ema(df_w['close'], length=18)
+            df_w['emas_cond_w'] = (df_w['close'] > df_w['EMA4_W']) & (df_w['close'] > df_w['EMA9_W']) & (df_w['close'] > df_w['EMA18_W'])
+            
+            emas_w_active_today = bool(df_w['emas_cond_w'].iloc[-1])
+            emas_w_date = None
+            emas_w_days = None
+            if not df_w[df_w['emas_cond_w']].empty:
+                if emas_w_active_today:
+                    streak = df_w['emas_cond_w'].tolist()
+                    idx = len(streak) - 1
+                    while idx >= 0 and streak[idx]: idx -= 1
+                    w_start = df_w.index[idx + 1]
+                    emas_w_date = fmt_date(w_start); emas_w_days = (datetime.now().date() - w_start.days if hasattr(w_start, 'days') else (datetime.now().date() - w_start.date()).days)
+                else:
+                    w_last = df_w[df_w['emas_cond_w']].index[-1]
+                    emas_w_date = fmt_date(w_last); emas_w_days = (datetime.now().date() - w_last.date()).days
 
             result.update({
-                'emas_active': emas_active_today,
-                'emas_date': emas_date,
-                'emas_days': emas_days,
-                'ema4': float(df['EMA4'].iloc[-1]) if not pd.isna(df['EMA4'].iloc[-1]) else None,
-                'ema9': float(df['EMA9'].iloc[-1]) if not pd.isna(df['EMA9'].iloc[-1]) else None,
-                'ema18': float(df['EMA18'].iloc[-1]) if not pd.isna(df['EMA18'].iloc[-1]) else None
+                'emas_d_active': emas_d_active_today,
+                'emas_d_date': emas_d_date,
+                'emas_d_days': emas_d_days,
+                'emas_w_active': emas_w_active_today,
+                'emas_w_date': emas_w_date,
+                'emas_w_days': emas_w_days,
+                'ema4_d': float(df['EMA4_D'].iloc[-1]) if not pd.isna(df['EMA4_D'].iloc[-1]) else None,
+                'ema9_d': float(df['EMA9_D'].iloc[-1]) if not pd.isna(df['EMA9_D'].iloc[-1]) else None,
+                'ema18_d': float(df['EMA18_D'].iloc[-1]) if not pd.isna(df['EMA18_D'].iloc[-1]) else None
             })
 
         return result

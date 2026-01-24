@@ -29,7 +29,14 @@ app.config['SWAGGER'] = {
     'title': 'Scanner Pro API',
     'uiversion': 3
 }
-swagger = Swagger(app)
+# Inicializar Swagger solo si está disponible y es callable; proteger contra errores en tiempo de importación.
+if _HAS_FLASGGER and callable(Swagger):
+    try:
+        swagger = Swagger(app)
+    except Exception:
+        swagger = None
+else:
+    swagger = None
 
 init_db(app)
 

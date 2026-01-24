@@ -36,15 +36,21 @@ Los indicadores se calculan "en memoria" al momento de abrir el Dashboard para a
 
 ### Reglas Implementadas:
 1.  **RSI Sobrevendido (< 30)**:
-    *   Revisa el RSI de 14 períodos en el histórico de los últimos 365 días.
-    *   Muestra hace cuántos días ocurrió el último evento de sobreventa.
-2.  **Tendencia RSI (Alcista)**:
-    *   Compara el valor del RSI actual contra su media móvil (SMA de 14 períodos).
-    *   Si RSI > Media, se considera una "Tendencia RSI Alcista".
-3.  **Oportunidad MACD**:
-    *   Detecta si hubo un cruce de la línea MACD por encima de la Señal (`MACD > Signal`).
-    *   Filtra solo cruces que ocurrieron mientras el valor del MACD es igual o inferior a cero.
-    *   Revisa una ventana de los últimos 30 días.
+    *   Revisa el RSI de 14 períodos (basado en precio de cierre) en el histórico de los últimos 365 días.
+    *   Muestra la fecha exacta y hace cuántos días ocurrió el último evento de sobreventa. Si no hubo en el año, muestra "Sin Sobreventa".
+2.  **Tendencia RSI (Rebote Alcista)**:
+    *   Busca la **primera fecha (más lejana)** posterior a la última sobreventa donde el RSI cruzó por encima de su media móvil (SMA 14).
+    *   Esto permite identificar el inicio del cambio de tendencia tras un piso.
+3.  **Oportunidad MACD (Dividido en 2 columnas)**:
+    *   **MACD Inicio**: Muestra la fecha del primer cruce positivo (`MACD > Signal`) ocurrido bajo cero en los últimos 30 días.
+    *   **MACD Hoy**: Muestra si dicha condición de oportunidad sigue activa en la última fecha de mercado.
+
+---
+
+## 4. Control de Versiones
+El proyecto se gestiona con Git:
+- **Rama master**: Versión estable Etapa 1.
+- **Rama [Fecha ISO]**: Ramas de trabajo diario (ej. `2026-01-23`).
 
 ---
 

@@ -156,13 +156,13 @@ class FinanceService:
             })
 
         elif strategy == '3_emas':
-            # Strategy 2: 3 EMAS (5, 9, 20)
-            df['EMA5'] = ta.ema(df['close'], length=5)
+            # Strategy 2: 3 EMAS (4, 9, 18)
+            df['EMA4'] = ta.ema(df['close'], length=4)
             df['EMA9'] = ta.ema(df['close'], length=9)
-            df['EMA20'] = ta.ema(df['close'], length=20)
+            df['EMA18'] = ta.ema(df['close'], length=18)
             
-            # Condition: Price > EMA5 AND Price > EMA9 AND Price > EMA20
-            df['emas_cond'] = (df['close'] > df['EMA5']) & (df['close'] > df['EMA9']) & (df['close'] > df['EMA20'])
+            # Condition: Price > EMA4 AND Price > EMA9 AND Price > EMA18
+            df['emas_cond'] = (df['close'] > df['EMA4']) & (df['close'] > df['EMA9']) & (df['close'] > df['EMA18'])
             
             # Find the most recent event where condition became true or is true
             emas_active = df[df['emas_cond']]
@@ -173,7 +173,6 @@ class FinanceService:
 
             if not emas_active.empty:
                 emas_active_today = bool(df['emas_cond'].iloc[-1])
-                # Para la vez más reciente: buscar el inicio de la racha actual o la última racha
                 if emas_active_today:
                     streak = df['emas_cond'].tolist()
                     idx = len(streak) - 1
@@ -190,9 +189,9 @@ class FinanceService:
                 'emas_active': emas_active_today,
                 'emas_date': emas_date,
                 'emas_days': emas_days,
-                'ema5': float(df['EMA5'].iloc[-1]) if not pd.isna(df['EMA5'].iloc[-1]) else None,
+                'ema4': float(df['EMA4'].iloc[-1]) if not pd.isna(df['EMA4'].iloc[-1]) else None,
                 'ema9': float(df['EMA9'].iloc[-1]) if not pd.isna(df['EMA9'].iloc[-1]) else None,
-                'ema20': float(df['EMA20'].iloc[-1]) if not pd.isna(df['EMA20'].iloc[-1]) else None
+                'ema18': float(df['EMA18'].iloc[-1]) if not pd.isna(df['EMA18'].iloc[-1]) else None
             })
 
         return result

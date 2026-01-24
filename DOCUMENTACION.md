@@ -42,7 +42,7 @@ Los indicadores se calculan "en memoria" al momento de abrir el Dashboard para a
 3.  **Oportunidad MACD**: Cruce alcista bajo cero (12, 26, 9).
 
 #### 2-3_EMAS
-1.  **Precio > 3 EMAS**: Detecta cuando el **Precio de Cierre** se posiciona simultáneamente por encima de las Medias Móviles Exponenciales (EMA) de **5, 9 y 20 períodos**.
+1.  **Precio > 3 EMAS**: Detecta cuando el **Precio de Cierre** se posiciona simultáneamente por encima de las Medias Móviles Exponenciales (EMA) de **4, 9 y 18 períodos**.
 2.  **Visualización**: Muestra la fecha en que se produjo la condición por última vez y hace cuántos días. Si el precio sigue por encima hoy, la señal aparece en **Verde**, de lo contrario en **Rojo**.
 
 ---

@@ -1,252 +1,237 @@
-# Documentación Técnica: Stock Scanner Pro v1.2.0
+# Scanner Pro Python - Documentación Técnica
 
-## 1. Resumen Ejecutivo
-Stock Scanner Pro es una plataforma analítica de alta performance diseñada para el monitoreo cuantitativo de activos financieros. El sistema integra algoritmos de análisis técnico multi-temporal (Daily/Weekly) para identificar patrones de capitulación y momentum, permitiendo a los usuarios filtrar universos de activos mediante reglas estricta de jerarquización operativa.
+## Descripción del Proyecto
 
----
+Scanner Pro Python es una aplicación web para el análisis de señales de trading en tiempo real. Permite a los usuarios monitorear tickers de acciones, sincronizar datos históricos desde Yahoo Finance y generar señales de trading basadas en diferentes estrategias técnicas.
 
-## 2. Pila Tecnológica (Tech Stack)
+## Características Principales
 
-### 2.1 Backend Core
-- **Lenguaje**: Python 3.10+
-- **Framework Web**: Flask (WSGI compliant).
-- **ORM**: SQLAlchemy para la gestión de la persistencia de datos relacionales.
-- **Engine Técnico**: 
-  - `Pandas`: Estructuras de datos matriciales (DataFrames).
-  - `Pandas-TA`: Biblioteca de análisis técnico para cálculos vectorizados de indicadores.
+- **Gestión de Tickers**: Agregar, eliminar y monitorear tickers de acciones
+- **Sincronización de Datos**: Descarga automática de datos históricos desde Yahoo Finance
+- **Análisis Técnico**: Generación de señales de trading usando indicadores técnicos
+- **Interfaz Web**: Dashboard interactivo para visualizar señales y datos
+- **API REST**: Endpoints para integración con otras aplicaciones
 
-### 2.2 Persistencia de Datos
-- **Motor**: SQLite 3.
-- **Modelo Relacional**:
-  - `Ticker`: Entidad maestra de activos. Implementa normalización automática de símbolos (ej. conversión de `BCBA:TICKER` a `TICKER.BA`).
-  - `Price`: Serie temporal histórica. Almacena OHLCV (Open, High, Low, Close, Volume).
+## Arquitectura del Sistema
 
-### 2.3 Frontend & Visualización
-- **Arquitectura**: Single Page Application (SPA) basada en componentes nativos (Vanilla JS).
-- **UI/UX**: Estética Dark-Premium con efectos de Glassmorphism (CSS Moderno).
-- **Export Engine**: Integración con `SheetJS` (XLSX) para procesamiento de reportes del lado del cliente.
+### Componentes Principales
 
----
+1. **Aplicación Flask** ([`app.py`](app.py))
+   - Servidor web y API REST
+   - Rutas para gestión de tickers y análisis
+   - Integración con Swagger para documentación de API
 
-## 3. Lógica Cuantitativa y Estrategias
+2. **Servicio Financiero** ([`finance_service.py`](finance_service.py))
+   - Sincronización de datos desde Yahoo Finance
+   - Cálculo de indicadores técnicos (RSI, MACD, EMAs)
+   - Normalización de símbolos de tickers
 
-### 3.1 Estrategia 1: RSI + MACD Momentum Rebound
-Diseñada para la detección de reversiones en zonas de agotamiento de venta.
+3. **Base de Datos** ([`database.py`](database.py))
+   - Modelos de datos para Ticker y Price
+   - Inicialización de base de datos SQLite
+   - Restricciones de unicidad para evitar duplicados
 
-*   **Indicador RSI (p=14)**:
-    - **Trigger de Captura**: Localiza el evento `RSI < 30` en una ventana retrospectiva de 365 días.
-    - **Señal de Rebote**: Identifica el primer punto de inflexión donde `RSI > SMA(RSI, 14)` posterior al trigger de captura.
-*   **Indicador MACD (12, 26, 9)**:
-    - **Filtro de Oportunidad**: Cruce alcista (`MACD > Signal`) condicionado a que el valor absoluto del MACD se encuentre en terreno negativo o neutro (`MACD <= 0`).
-    - **Invalidación (Exit Strategy)**: La señal conmuta a estado `Inactive` (Visual: Red) de forma inmediata si el cruce se vuelve bajista o si el indicador supera el umbral de `0`.
+4. **Scripts de Utilidad**
+   - [`scripts/check_db.py`](scripts/check_db.py): Verificación del estado de la base de datos
+   - [`scripts/delete_empty_tickers.py`](scripts/delete_empty_tickers.py): Eliminación de tickers sin datos
+   - [`scripts/sync_data.py`](scripts/sync_data.py): Sincronización manual de datos
 
-### 3.2 Estrategia 2: 3-EMA Multi-Timeframe Alignment (4, 9, 18)
-Estrategia de seguimiento de tendencia que busca la alineación de momentum en diferentes horizontes temporales.
+## Instalación y Configuración
 
-*   **Parámetros**: Medias Móviles Exponenciales (EMA) de corto (p=4), medio (p=9) y largo (p=18) recorrido.
-*   **Alineación Diaria (D)**: Validada mediante `Close > EMA4, EMA9, EMA18`.
-*   **Alineación Semanal (W)**: 
-    - **Algoritmo de Resampling**: Transforma la serie diaria en semanal utilizando el alias `W-FRI` (Weekly ending on Fridays).
-    - **Seguridad de Datos**: El índice temporal se limita estrictamente a la fecha actual (`Capped Logic`) para prevenir la generación de etiquetas futuras y asegurar la integridad de los días transcurridos.
+### Requisitos Previos
 
----
+- Python 3.8 o superior
+- pip (gestor de paquetes de Python)
 
-## 4. Gestión de Trazabilidad y Ordenamiento
+### Pasos de Instalación
 
-El sistema implementa un algoritmo de **Ordenamiento Jerárquico por Desempate (Hierarchical Sorting)** para la Estrategia 2, asegurando que los activos con mayor fuerza relativa encabecen el listado:
+1. **Clonar el Repositorio**
+   ```bash
+   git clone https://github.com/joriza/scanner-py.git
+   cd scanner-py
+   ```
 
-1.  **Prioridad de Alineación (Score)**: `(D_Active + W_Active)`. Puntuación máxima = 2.
-2.  **Jerarquía Temporal Mayor**: Ante igualdad de score, se prioriza el activo con el cruce **Semanal** más reciente (ASC).
-3.  **Jerarquía de Micro-Momentum**: Ante igualdad en la señal semanal, se desempata por el cruce **Diario** más reciente (ASC).
+2. **Crear Entorno Virtual**
+   ```bash
+   python -m venv venv
+   # En Windows
+   venv\Scripts\activate
+   # En macOS/Linux
+   source venv/bin/activate
+   ```
 
----
+3. **Instalar Dependencias**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## 5. Capacidades de Interoperabilidad
+4. **Inicializar la Base de Datos**
+   La base de datos se inicializa automáticamente al ejecutar la aplicación.
 
-### 5.1 API RESTful
-- `GET /api/scan?strategy=[id]`: Motor de escaneo bajo demanda. Devuelve estructura JSON enriquecida con metadatos técnicos.
-- `POST /api/refresh`: Sincronización asíncrona incremental con Yahoo Finance API.
-- `POST /api/tickers`: Punto de entrada para nuevos activos con normalización inteligente BCBA/Standard.
+### Configuración
 
-### 5.2 Exportación de Datos (Data Portability)
-El sistema permite la exportación íntegra del estado actual del dashboard a formato XLSX. Los archivos generados incluyen una nomenclatura estricta: `[StrategyName]_[YYYY-MM-DD_HH-MM].xlsx`.
+El proyecto puede configurarse mediante variables de entorno:
 
----
+| Variable | Descripción | Valor por Defecto |
+|----------|-------------|-------------------|
+| `DATABASE_URL` | URI de conexión a la base de datos | `sqlite:///instance/scanner.db` |
+| `HOST` | Host del servidor Flask | `0.0.0.0` |
+| `PORT` | Puerto del servidor Flask | `5000` |
+| `FLASK_DEBUG` | Modo de depuración | `0` |
 
-## 6. Mantenimiento y Extensibilidad (AI Ready)
+## Uso
 
-- **Dependency Management**: El entorno de ejecución se rige por el archivo `requirements.txt`.
-- **Contexto de Agente**: El archivo `.agent` define las invariantes del sistema, prohibiendo expresamente el uso de datos sintéticos (placeholders) y garantizando la coherencia estilística en futuras expansiones.
-- **Versionado**: Gestión de ramas por fecha (ISO 8601) para asegurar la trazabilidad de features.
+### Ejecutar el Servidor de Desarrollo
 
----
+```bash
+python app.py
+```
 
-## 7. Propuestas de mejora (rama: ztmp-01)
+La aplicación estará disponible en `http://localhost:5000`.
 
-Se documentan propuestas priorizadas, preparadas en la rama "ztmp-01" para implementación incremental.
+### API REST
 
-- Configuración y despliegue
-  - Usar variable de entorno DATABASE_URL y ruta relativa (ej. `sqlite:///instance/scanner.db`) en lugar de ruta absoluta.
-  - Añadir Dockerfile y preparar configuración para gunicorn/uWSGI en producción.
+#### Obtener Todos los Tickers
+```http
+GET /api/tickers
+```
 
-- Modelos y base de datos
-  - Añadir relación Ticker.prices con backref y cascade delete.
-  - Crear índice compuesto en Price (ticker_id, date) y considerar Numeric para precisión de precios.
-  - Reemplazar uso de create_all por migraciones con Flask-Migrate / Alembic.
+#### Agregar un Nuevo Ticker
+```http
+POST /api/tickers
+Content-Type: application/json
 
-- Robustez y manejo de errores
-  - Validar request.json y campos (evitar usar .get si request.json es None).
-  - Manejar y loggear excepciones en sync_ticker_data; evitar silenciar errores con continue.
-  - Usar transacciones y rollback en operaciones de escritura.
+{
+  "symbol": "TSLA"
+}
+```
 
-- Rendimiento y escalabilidad
-  - Usar inserciones por lotes (bulk_save_objects / bulk_insert_mappings) o upserts para evitar queries por fila.
-  - Validar y normalizar datos de yfinance (gestión de MultiIndex, NaN) antes de persistir.
-  - Implementar caching de cálculos de señales (TTL) para evitar recomputos innecesarios.
+#### Eliminar un Ticker
+```http
+DELETE /api/tickers/<ticker_id>
+```
 
-- Arquitectura de ejecución
-  - Desacoplar sincronizaciones a background jobs (Celery, RQ o APScheduler).
-  - Añadir locking por ticker o encolamiento para evitar sincronizaciones concurrentes del mismo activo.
-  - Implementar retry/backoff y control de rate-limit para llamadas a APIs externas.
+#### Sincronizar Datos de Tickers
+```http
+POST /api/refresh
+```
 
-- API y seguridad
-  - Añadir endpoints: `GET /api/tickers/<id>/prices` (paginado), `POST /api/tickers/<id>/resync`, `GET /api/health`.
-  - Añadir autenticación/autorization para rutas administrativas (token, OAuth o Flask-Login).
-  - Normalizar formato de respuestas JSON y códigos HTTP.
+#### Escanear Tickers y Obtener Señales
+```http
+GET /api/scan?strategy=rsi_macd
+```
 
-- Funcionalidades y UX
-  - Interfaz: lista de tickers con estado, gráficos interactivos (Chart.js), botón de re-sync por ticker.
-  - Export CSV/JSON de precios y señales; historial de señales y backtesting básico.
-  - Alertas (email/Telegram) para notificaciones de señales relevantes.
+Estrategias disponibles:
+- `rsi_macd`: Señales basadas en RSI y MACD
+- `3_emas`: Señales basadas en 3 EMAs (4, 9, 18)
 
-- Calidad y CI
-  - Tests unitarios y de integración (mockear yfinance/pandas).
-  - Linter y formateo (black, isort, flake8) y hooks pre-commit.
-  - GitHub Actions para tests y lint en PRs.
+## Estrategias de Trading
 
-- Observabilidad y despliegue
-  - Logging estructurado y métricas (Prometheus / /metrics).
-  - Preparar imágenes Docker y documentación de despliegue.
+### Estrategia RSI + MACD
 
-Notas:
-- Prioridad sugerida para implementación: 1) mover DB URI a env var + validaciones de API, 2) migraciones y relación cascade, 3) desacoplar sync a background jobs.
-- Puedo aplicar los cambios iniciales en la rama ztmp-01 y crear commits con pruebas unitarias y ejemplos de uso si autoriza la implementación.
+**Indicadores:**
+- RSI (Relative Strength Index) con período 14
+- MACD (12, 26, 9)
 
----
+**Señales:**
+- **RSI Oversold**: RSI < 30
+- **RSI Bullish**: RSI cruza por encima de su SMA después de oversold
+- **MACD Active**: MACD > Signal y MACD ≤ 0
 
-## 8. Ejecución y despliegue
+### Estrategia 3 EMAs
 
-Se describen las formas recomendadas para ejecutar y desplegar la aplicación.
+**Indicadores:**
+- EMA 4 (diaria)
+- EMA 9 (diaria)
+- EMA 18 (diaria)
+- EMA 4 (semanal)
+- EMA 9 (semanal)
+- EMA 18 (semanal)
 
-### 8.1 Ejecución local (desarrollo)
-- Crear y activar entorno virtual, instalar deps:
-  ```bash
-  python -m venv venv
-  venv\Scripts\activate      # Windows
-  source venv/bin/activate   # macOS / Linux
-  pip install -r requirements.txt
-  ```
-- Ejecutar servidor de desarrollo:
-  ```bash
-  export FLASK_DEBUG=1
-  python app.py
-  ```
-  o en Windows (PowerShell):
-  ```powershell
-  $env:FLASK_DEBUG = "1"
-  python app.py
-  ```
+**Señales:**
+- **Diaria**: Precio > EMA4 > EMA9 > EMA18
+- **Semanal**: Precio > EMA4 > EMA9 > EMA18 (resampleado a viernes)
 
-### 8.2 Ejecución local (producción - gunicorn)
-- Recomendado para pruebas de producción local:
-  ```bash
-  pip install gunicorn
-  gunicorn app:app --bind 0.0.0.0:8000 --workers 3 --timeout 120
-  ```
+## Base de Datos
 
-### 8.3 Despliegue en Render
-- Campo "Start Command" (Start Command / Deploy):
-  ```
-  gunicorn app:app --bind 0.0.0.0:$PORT
-  ```
-- Recomendado con workers:
-  ```
-  gunicorn app:app --workers 3 --bind 0.0.0.0:$PORT --timeout 120
-  ```
-- Notas:
-  - Render expone el puerto en la variable de entorno `$PORT`; no usar puerto fijo.
-  - Asegúrese que `gunicorn` y dependencias estén en `requirements.txt`.
-  - Si usa Swagger/Flasgger, incluya `flasgger` en `requirements.txt` (opcional: la app tolera su ausencia).
+### Esquema
 
-### 8.4 Despliegue con Docker (ejemplo mínimo)
-- Dockerfile mínimo:
-  ```dockerfile
-  FROM python:3.11-slim
-  WORKDIR /app
-  COPY requirements.txt .
-  RUN pip install -r requirements.txt
-  COPY . .
-  ENV PORT=8000
-  CMD ["gunicorn", "app:app", "--workers", "3", "--bind", "0.0.0.0:8000", "--timeout", "120"]
-  ```
-- Build & run:
-  ```bash
-  docker build -t scanner-pro .
-  docker run -p 8000:8000 -e PORT=8000 scanner-pro
-  ```
+#### Tabla `ticker`
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| id | Integer | Identificador único |
+| symbol | String(20) | Símbolo del ticker |
+| name | String(100) | Nombre del ticker |
+| sector | String(100) | Sector del ticker |
+| is_active | Boolean | Estado del ticker |
+| last_sync | DateTime | Última sincronización |
 
-### 8.5 Variables de entorno importantes
-- DATABASE_URL — URI SQLAlchemy (ej.: `sqlite:///instance/scanner.db` o `sqlite:///C:/full/path/instance/scanner.db` o una URL PostgreSQL).
-- HOST / PORT — opcionales para ejecución local; Render provee $PORT.
-- FLASK_DEBUG — "1" para activar modo debug local.
+#### Tabla `price`
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| id | Integer | Identificador único |
+| ticker_id | Integer | ID del ticker (FK) |
+| date | Date | Fecha del precio |
+| open | Float | Precio de apertura |
+| high | Float | Precio máximo |
+| low | Float | Precio mínimo |
+| close | Float | Precio de cierre |
+| volume | BigInteger | Volumen de operaciones |
 
-### 8.6 Troubleshooting común
-- Error "unable to open database file":
-  - Verificar que `instance/scanner.db` existe y permisos de escritura.
-  - Para rutas relativas, la app ahora genera ruta absoluta; si persiste, pruebe con `DATABASE_URL=sqlite:///C:/ruta/completa/instance/scanner.db`.
-- Error de módulo faltante en deploy (ej. `ModuleNotFoundError: No module named 'flasgger'`):
-  - Añadir la dependencia a `requirements.txt` o dejar la importación opcional (la app soporta ambos modos).
+**Restricción de Unicidad:** `(ticker_id, date)`
 
----
+## Scripts de Utilidad
 
-## 9. Convenciones de Git y flujo de trabajo (estilo del proyecto)
+### Verificar Estado de la Base de Datos
+```bash
+python scripts/check_db.py
+```
 
-Estas reglas deben registrarse y respetarse en el proyecto para mantener consistencia operativa.
+### Eliminar Tickers Sin Datos
+```bash
+python scripts/delete_empty_tickers.py
+```
 
-- Publicación de ramas
-  - Al crear una rama local se debe publicar en GitHub inmediatamente y configurar upstream:
-    ```bash
-    git checkout -b nombre-rama
-    git push -u origin nombre-rama
-    ```
+### Sincronizar Datos Manualmente
+```bash
+python scripts/sync_data.py
+```
 
-- Mensajes de commit
-  - Mensajes en español.
-  - Asunto en presente indicativo (≤ 72 caracteres). Cuerpo opcional separado por línea en blanco.
-    ```
-    Corregir validación en POST /api/tickers
+## Despliegue
 
-    Se añade comprobación de request.json y mensaje de error claro cuando falta 'symbol'.
-    ```
+### Render
 
-- Push obligatorio después de commit
-  - Tras cada commit relevante, hacer push:
-    ```bash
-    git add .
-    git commit -m "Mensaje en español"
-    git push
-    ```
+1. Conectar el repositorio a Render
+2. Configurar las variables de entorno necesarias
+3. Render desplegará automáticamente la aplicación
 
-- Pull Requests
-  - Crear PRs con título y descripción en español; referenciar issue/objetivo.
+### Docker
 
-- Nomenclatura de ramas
-  - feature/<breve-descripción>, fix/<breve-descripción>, chore/<tarea>.
+```dockerfile
+FROM python:3.11-slim
 
-- Hooks y verificación automática (recomendado)
-  - Configurar pre-commit hooks (black, isort, flake8).
+WORKDIR /app
 
-- Buenas prácticas
-  - Commits atómicos y pequeños.
-  - Incluir tests al añadir funcionalidad.
-  - Mantener rama principal protegida y usar PRs revisados.
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["python", "app.py"]
+```
+
+## Contribución
+
+1. Fork el repositorio
+2. Crear una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit tus cambios (`git commit -m 'Añadir nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Abrir un Pull Request
+
+## Licencia
+
+Este proyecto está bajo la Licencia MIT.
+
+## Soporte
+
+Para preguntas o problemas, por favor abre un issue en el repositorio de GitHub.

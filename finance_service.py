@@ -3,6 +3,12 @@ import pandas as pd
 import pandas_ta as ta
 from datetime import datetime, timedelta
 from database import db, Ticker, Price
+import time
+import logging
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class FinanceService:
     @staticmethod
@@ -14,20 +20,45 @@ class FinanceService:
         return symbol.replace('.', '-')
 
     @staticmethod
-    def sync_ticker_data(ticker_obj):
+    def sync_ticker_data(ticker_obj, max_retries=3, retry_delay=2):
         symbol = FinanceService.normalize_symbol(ticker_obj.symbol)
+        logger.info(f"Syncing {symbol}...")
+        
         last_price = Price.query.filter_by(ticker_id=ticker_obj.id).order_by(Price.date.desc()).first()
-        if last_price:
-            start_date = (last_price.date + timedelta(days=1)).strftime('%Y-%m-%d')
-        else:
-            start_date = (datetime.now() - timedelta(days=365*2)).strftime('%Y-%m-%d')
-            
-        now = datetime.now().strftime('%Y-%m-%d')
-        if start_date >= now:
-            return 0
-            
-        data = yf.download(symbol, start=start_date, end=now, progress=False)
-        if data.empty:
+        
+        # Intentar descargar datos usando el método más confiable
+        data = None
+        for attempt in range(max_retries):
+            try:
+                # Usar period para obtener datos más confiablemente
+                # Descargar datos de los últimos 2 años si no hay datos previos
+                if last_price:
+                    # Calcular días desde la última sincronización
+                    days_since_last = (datetime.now().date() - last_price.date).days
+                    if days_since_last <= 30:
+                        period = "1mo"
+                    elif days_since_last <= 90:
+                        period = "3mo"
+                    elif days_since_last <= 180:
+                        period = "6mo"
+                    else:
+                        period = "2y"
+                else:
+                    period = "2y"
+                
+                data = yf.download(symbol, period=period, progress=False, timeout=30)
+                if not data.empty:
+                    break
+                logger.warning(f"  {symbol}: Intento {attempt + 1}/{max_retries} - Datos vacíos con period={period}")
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+            except Exception as e:
+                logger.warning(f"  {symbol}: Intento {attempt + 1}/{max_retries} - Error: {str(e)}")
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+        
+        if data is None or data.empty:
+            logger.error(f"  {symbol}: No se pudieron obtener datos después de {max_retries} intentos")
             return 0
             
         if isinstance(data.columns, pd.MultiIndex):
@@ -51,10 +82,12 @@ class FinanceService:
                     db.session.add(price)
                     count += 1
                 except Exception as e:
+                    logger.error(f"  {symbol}: Error procesando fecha {date_val}: {str(e)}")
                     continue
         
         ticker_obj.last_sync = datetime.now()
         db.session.commit()
+        logger.info(f"  {symbol}: {count} nuevos registros agregados")
         return count
 
     @staticmethod

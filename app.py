@@ -9,6 +9,7 @@ except Exception:
 from database import db, init_db, Ticker, Price
 from finance_service import FinanceService
 import os
+import time
 
 app = Flask(__name__)
 # Use DATABASE_URL env var if provided (for deployment platforms like Render).
@@ -140,9 +141,16 @@ def seed_tickers():
 def refresh_data():
     tickers = Ticker.query.all()
     results = []
-    for t in tickers:
-        count = FinanceService.sync_ticker_data(t)
+    delay_between_tickers = 1  # Segundos de espera entre tickers para evitar bloqueos
+    
+    for i, t in enumerate(tickers):
+        count = FinanceService.sync_ticker_data(t, max_retries=3, retry_delay=2)
         results.append({'symbol': t.symbol, 'new_records': count})
+        
+        # Agregar delay entre tickers (excepto el último)
+        if i < len(tickers) - 1:
+            time.sleep(delay_between_tickers)
+    
     return jsonify(results)
 
 @app.route('/api/scan', methods=['GET'])

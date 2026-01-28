@@ -395,6 +395,221 @@ def refresh_data():
 
 ---
 
+## Posibles Mejoras Adicionales
+
+### 1. Benchmarking Previa
+
+**Descripción:** Antes de implementar optimizaciones, realizar mediciones de referencia para establecer una línea base real.
+
+**Implementación:**
+```python
+# scripts/benchmark.py
+import time
+from app import app, db
+from models import Ticker, Price
+
+def benchmark_sync_ticker(symbol):
+    ticker = Ticker.query.filter_by(symbol=symbol).first()
+    if not ticker:
+        return None
+    
+    start = time.time()
+    count = FinanceService.sync_ticker_data(ticker)
+    elapsed = time.time() - start
+    
+    return {
+        'symbol': symbol,
+        'records_added': count,
+        'time_seconds': elapsed
+    }
+
+def run_benchmark():
+    tickers = Ticker.query.limit(10).all()
+    results = []
+    
+    for t in tickers:
+        result = benchmark_sync_ticker(t.symbol)
+        if result:
+            results.append(result)
+    
+    print("\n=== BENCHMARK DE REFERENCIA ===")
+    for r in results:
+        print(f"{r['symbol']}: {r['time_seconds']:.2f}s - {r['records_added']} registros")
+    
+    avg_time = sum(r['time_seconds'] for r in results) / len(results)
+    print(f"\nTiempo promedio: {avg_time:.2f}s")
+```
+
+**Beneficio:** Permite validar las mejoras de rendimiento con datos reales.
+
+---
+
+### 2. Consideración de Impacto en Memoria
+
+**Descripción:** Evaluar el impacto de las operaciones bulk en el uso de memoria, especialmente con grandes volúmenes de datos.
+
+**Implementación:**
+```python
+# Chunking para operaciones bulk
+def sync_ticker_data_with_chunking(ticker_obj, data, chunk_size=1000):
+    existing_dates = set(
+        p.date for p in Price.query
+        .with_entities(Price.date)
+        .filter_by(ticker_id=ticker_obj.id)
+        .all()
+    )
+    
+    new_prices = []
+    count = 0
+    
+    for row in data.itertuples():
+        date_val = row.Index.date()
+        if date_val not in existing_dates:
+            new_prices.append(Price(
+                ticker_id=ticker_obj.id,
+                date=date_val,
+                open=float(row.Open),
+                high=float(row.High),
+                low=float(row.Low),
+                close=float(row.Close),
+                volume=int(row.Volume)
+            ))
+            count += 1
+            
+            # Commit en chunks para evitar memoria alta
+            if len(new_prices) >= chunk_size:
+                db.session.bulk_save_objects(new_prices)
+                db.session.commit()
+                new_prices = []
+    
+    # Commit restante
+    if new_prices:
+        db.session.bulk_save_objects(new_prices)
+        db.session.commit()
+    
+    return count
+```
+
+**Beneficio:** Evita picos de memoria altos con grandes volúmenes de datos.
+
+---
+
+### 3. Evaluación de Impacto en Concurrencia del Caché
+
+**Descripción:** Analizar cómo el caché LRU afecta la concurrencia en entornos multi-usuario.
+
+**Implementación:**
+```python
+# Opción A: Usar caché con invalidación por ticker
+from functools import lru_cache
+import time
+
+@lru_cache(maxsize=128)
+def get_cached_signals(ticker_id, strategy, cache_key):
+    ticker = Ticker.query.get(ticker_id)
+    return FinanceService.get_signals(ticker, strategy=strategy)
+
+@app.route('/api/scan', methods=['GET'])
+def scan_tickers():
+    strategy = request.args.get('strategy', 'rsi_macd')
+    tickers = Ticker.query.all()
+    
+    signals = []
+    for t in tickers:
+        # Cache key basado en ticker_id y estrategia (no en tiempo)
+        cache_key = f"{t.id}_{strategy}"
+        signal = get_cached_signals(t.id, strategy, cache_key)
+        if signal:
+            signals.append(signal)
+    
+    return jsonify(signals)
+
+# Opción B: Usar caché con invalidación manual
+from flask_caching import Cache
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+
+@app.route('/api/scan', methods=['GET'])
+@cache.cached(timeout=300, key_prefix=lambda: request.url)
+def scan_tickers():
+    # ... código original ...
+```
+
+**Beneficio:** Mejor control sobre el comportamiento del caché en entornos concurrentes.
+
+---
+
+### 4. Monitoreo de Rendimiento en Producción
+
+**Descripción:** Implementar métricas de rendimiento para monitorear el impacto de las optimizaciones.
+
+**Implementación:**
+```python
+# middleware.py
+import time
+from flask import request, g
+
+@app.before_request
+def start_timer():
+    g.start_time = time.time()
+
+@app.after_request
+def log_request(response):
+    if hasattr(g, 'start_time'):
+        elapsed = time.time() - g.start_time
+        logger.info(f"{request.method} {request.path} - {elapsed:.3f}s")
+        response.headers['X-Response-Time'] = f"{elapsed:.3f}s"
+    return response
+
+# metrics.py
+from prometheus_client import Counter, Histogram
+
+request_count = Counter('http_requests_total', 'Total HTTP requests')
+request_duration = Histogram('http_request_duration_seconds', 'HTTP request duration')
+
+@app.before_request
+def increment_request_count():
+    request_count.inc()
+
+@app.after_request
+def record_request_duration(response):
+    if hasattr(g, 'start_time'):
+        duration = time.time() - g.start_time
+        request_duration.observe(duration)
+    return response
+```
+
+**Beneficio:** Permite identificar cuellos de botella y medir el impacto de optimizaciones.
+
+---
+
+### 5. Revisión de Logs y Depuración
+
+**Descripción:** Agregar logs detallados para identificar cuellos de botella específicos.
+
+**Implementación:**
+```python
+# En finance_service.py
+def sync_ticker_data(ticker_obj):
+    start_time = time.time()
+    logger.info(f"Comenzando sincronización de {ticker_obj.symbol}")
+    
+    try:
+        # ... código existente ...
+        
+        elapsed = time.time() - start_time
+        logger.info(f"  {ticker_obj.symbol}: {count} nuevos registros agregados en {elapsed:.2f}s")
+        
+        return count
+    except Exception as e:
+        elapsed = time.time() - start_time
+        logger.error(f"  {ticker_obj.symbol}: Error en {elapsed:.2f}s - {e}")
+        raise
+```
+
+**Beneficio:** Facilita la identificación de problemas y medición precisa de mejoras.
+
+---
+
 ## Diagrama de Implementación
 
 ```mermaid
@@ -429,12 +644,23 @@ graph TD
 
 ## Archivos a Modificar
 
+### Archivos Principales
+
 | Archivo | Cambios | Líneas aprox. |
 |---------|---------|---------------|
 | [`finance_service.py`](finance_service.py) | 1.1, 1.2, 1.3, 2.1, 2.2 | ~30-40 |
 | [`app.py`](app.py) | 1.4, 2.3, 3.2 | ~20-25 |
 | [`database.py`](database.py) | 1.5 | ~1 |
 | [`requirements.txt`](requirements.txt) | Opcional: polars | ~1 |
+
+### Archivos para Mejoras Adicionales
+
+| Archivo | Propósito | Líneas aprox. |
+|---------|-----------|---------------|
+| [`scripts/benchmark.py`](scripts/benchmark.py) | Benchmarking previo | ~30-40 |
+| [`middleware.py`](middleware.py) | Middleware de monitoreo | ~20-30 |
+| [`metrics.py`](metrics.py) | Métricas de rendimiento | ~30-40 |
+| [`scripts/sync_with_chunking.py`](scripts/sync_with_chunking.py) | Sincronización con chunking | ~40-50 |
 
 ## Testing Plan
 

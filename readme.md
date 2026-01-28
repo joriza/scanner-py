@@ -31,7 +31,7 @@ cd scanner-py
 ```powershell
 # Windows
 python -m venv venv
-.\venv\Scripts\activate
+
 
 # macOS/Linux
 python -m venv venv
@@ -45,6 +45,12 @@ pip install -r requirements.txt
 
 ### 4. Iniciar la Aplicación
 ```bash
+python app.py
+```
+
+### 4.1 Activar entorno virtual e iniciar aplicacion e windows.
+```bash
+.\venv\Scripts\activate
 python app.py
 ```
 

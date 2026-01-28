@@ -22,7 +22,10 @@ class Price(db.Model):
     close = db.Column(db.Float)
     volume = db.Column(db.BigInteger)
 
-    __table_args__ = (db.UniqueConstraint('ticker_id', 'date', name='_ticker_date_uc'),)
+    __table_args__ = (
+        db.UniqueConstraint('ticker_id', 'date', name='_ticker_date_uc'),
+        db.Index('idx_ticker_date', 'ticker_id', 'date'),
+    )
 
 def init_db(app):
     db.init_app(app)

@@ -10,6 +10,7 @@ from database import db, init_db, Ticker, Price
 from finance_service import FinanceService
 import os
 import time
+from functools import lru_cache
 
 app = Flask(__name__)
 # Use DATABASE_URL env var if provided (for deployment platforms like Render).
@@ -141,7 +142,10 @@ def seed_tickers():
 def refresh_data():
     tickers = Ticker.query.all()
     results = []
-    delay_between_tickers = 1  # Segundos de espera entre tickers para evitar bloqueos
+    delay_between_tickers = 0.3  # Segundos de espera entre tickers para evitar bloqueos
+
+    # Invalidar caché antes de refrescar datos
+    get_cached_signals.cache_clear()
     
     for i, t in enumerate(tickers):
         count = FinanceService.sync_ticker_data(t, max_retries=3, retry_delay=2)
@@ -153,13 +157,19 @@ def refresh_data():
     
     return jsonify(results)
 
+@lru_cache(maxsize=128)
+def get_cached_signals(ticker_id, strategy, cache_key):
+    ticker = db.session.get(Ticker, ticker_id)
+    return FinanceService.get_signals(ticker, strategy=strategy)
+
 @app.route('/api/scan', methods=['GET'])
 def scan_tickers():
     strategy = request.args.get('strategy', 'rsi_macd')
     tickers = Ticker.query.all()
     signals = []
     for t in tickers:
-        signal = FinanceService.get_signals(t, strategy=strategy)
+        cache_key = f"{t.id}_{strategy}"
+        signal = get_cached_signals(t.id, strategy, cache_key)
         if signal:
             signals.append(signal)
     return jsonify(signals)

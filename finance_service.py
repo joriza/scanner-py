@@ -64,20 +64,27 @@ class FinanceService:
         if isinstance(data.columns, pd.MultiIndex):
             data.columns = data.columns.get_level_values(0)
 
+        # Optimización: Usar set para verificar duplicados (1 query en lugar de N)
+        existing_dates = set(
+            p.date for p in Price.query
+            .with_entities(Price.date)
+            .filter_by(ticker_id=ticker_obj.id)
+            .all()
+        )
+        
         count = 0
-        for index, row in data.iterrows():
-            date_val = index.date()
-            existing = Price.query.filter_by(ticker_id=ticker_obj.id, date=date_val).first()
-            if not existing:
+        for row in data.itertuples():
+            date_val = row.Index.date()
+            if date_val not in existing_dates:
                 try:
                     price = Price(
                         ticker_id = ticker_obj.id,
                         date = date_val,
-                        open = float(row['Open'].iloc[0] if isinstance(row['Open'], pd.Series) else row['Open']),
-                        high = float(row['High'].iloc[0] if isinstance(row['High'], pd.Series) else row['High']),
-                        low = float(row['Low'].iloc[0] if isinstance(row['Low'], pd.Series) else row['Low']),
-                        close = float(row['Close'].iloc[0] if isinstance(row['Close'], pd.Series) else row['Close']),
-                        volume = int(row['Volume'].iloc[0] if isinstance(row['Volume'], pd.Series) else row['Volume'])
+                        open = float(row.Open),
+                        high = float(row.High),
+                        low = float(row.Low),
+                        close = float(row.Close),
+                        volume = int(row.Volume)
                     )
                     db.session.add(price)
                     count += 1
@@ -92,7 +99,12 @@ class FinanceService:
 
     @staticmethod
     def get_signals(ticker_obj, strategy='rsi_macd'):
-        prices = Price.query.filter_by(ticker_id=ticker_obj.id).order_by(Price.date.asc()).all()
+        # Optimización: Cargar solo campos necesarios
+        prices = Price.query.with_entities(
+            Price.date, Price.open, Price.high,
+            Price.low, Price.close, Price.volume
+        ).filter_by(ticker_id=ticker_obj.id).order_by(Price.date.asc()).all()
+        
         if not prices or len(prices) < 30:
             return None
             
